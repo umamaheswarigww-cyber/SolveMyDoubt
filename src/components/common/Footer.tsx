@@ -16,7 +16,7 @@ export const Footer: React.FC = () => {
                 </div>
               </div>
               <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white">
-                SolveMyDoubt
+                DoubtsHub
               </span>
             </div>
             <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-[11px]">
@@ -103,7 +103,7 @@ export const Footer: React.FC = () => {
 
         <div className="mt-8 pt-6 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between flex-wrap gap-4 text-[11px]">
           <div>
-            © {new Date().getFullYear()} SolveMyDoubt (DoubtLoop). All rights reserved.
+            © {new Date().getFullYear()} DoubtsHub. All rights reserved.
           </div>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">

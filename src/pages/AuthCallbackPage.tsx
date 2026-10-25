@@ -94,7 +94,7 @@ export const AuthCallbackPage: React.FC = () => {
             </div>
             <h2 className="text-lg font-black text-white">Authentication Verified</h2>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Redirecting you to the DoubtLoop workspace...
+              Redirecting you to the DoubtsHub workspace...
             </p>
           </>
         )}

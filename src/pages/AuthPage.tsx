@@ -170,10 +170,10 @@ export const AuthPage: React.FC = () => {
                 <span className="text-indigo-400 font-extrabold text-sm">?↻</span>
               </div>
             </div>
-            <span className="font-extrabold text-xl text-white">DoubtLoop</span>
+            <span className="font-extrabold text-xl text-white">DoubtsHub</span>
           </Link>
           <h1 className="text-xl font-black text-white pt-2">
-            {mode === 'signup' ? 'Create University Account' : 'Sign in to DoubtLoop'}
+            {mode === 'signup' ? 'Create University Account' : 'Sign in to DoubtsHub'}
           </h1>
           <p className="text-xs text-slate-400">
             {mode === 'signup'

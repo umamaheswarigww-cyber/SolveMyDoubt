@@ -110,7 +110,7 @@ export const RescuePage: React.FC = () => {
               Unanswered Doubt Rescue System
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Every question on DoubtLoop is backed by our escalation guarantee. When doubts approach 12 hours without resolution, they are prioritized for community rescue with <strong className="text-rose-400">+15 bonus contributor reputation</strong> before escalating to faculty desks.
+              Every question on DoubtsHub is backed by our escalation guarantee. When doubts approach 12 hours without resolution, they are prioritized for community rescue with <strong className="text-rose-400">+15 bonus contributor reputation</strong> before escalating to faculty desks.
             </p>
           </div>
 
@@ -197,7 +197,7 @@ export const RescuePage: React.FC = () => {
             <h4>⏳ The 12-Hour Guarantee</h4>
           </div>
           <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Unlike standard discussion forums where unanswered doubts disappear into page 10, SolveMyDoubt monitors response telemetry. Any question pending without an answer for 12 hours is automatically rescued into this prioritized triage queue.
+            Unlike standard discussion forums where unanswered doubts disappear into page 10, DoubtsHub monitors response telemetry. Any question pending without an answer for 12 hours is automatically rescued into this prioritized triage queue.
           </p>
           <div className="text-[11px] font-bold text-rose-600 dark:text-rose-400 pt-1 flex items-center gap-1">
             <span>Zero Doubts Left Behind Protocol</span>

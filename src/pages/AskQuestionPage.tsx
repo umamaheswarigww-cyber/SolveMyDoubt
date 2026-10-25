@@ -489,10 +489,10 @@ For code blocks: ```python or ```cpp"
           <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 p-5 space-y-3 text-xs shadow-sm">
             <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span>DoubtLoop Escalation Protocol</span>
+              <span>DoubtsHub Escalation Protocol</span>
             </h4>
             <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
-              If your question receives no verified peer answers within 12 hours, DoubtLoop automatically escalates it to teaching assistants and faculty reviewers.
+              If your question receives no verified peer answers within 12 hours, DoubtsHub automatically escalates it to teaching assistants and faculty reviewers.
             </p>
           </div>
         </aside>

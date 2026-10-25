@@ -1,8 +1,8 @@
-# SolveMyDoubt (DoubtLoop)
+# DoubtsHub
 > **Tagline:** Every doubt deserves an answer and Every Problem has a Solution.  
 > **Mission:** Help students get reliable academic explanations from peers and certified faculty, outside classroom hours.
 
-![DoubtLoop Banner](https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&auto=format&fit=crop&q=80)
+![DoubtsHub Banner](https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&auto=format&fit=crop&q=80)
 
 ---
 
@@ -40,8 +40,8 @@
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/your-username/SolveMyDoubt.git
-cd SolveMyDoubt
+git clone https://github.com/your-username/DoubtsHub.git
+cd DoubtsHub
 npm install
 ```
 

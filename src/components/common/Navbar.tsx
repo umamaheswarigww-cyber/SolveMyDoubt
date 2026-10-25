@@ -86,10 +86,10 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
             </div>
             <div className="flex items-center gap-1.5">
               <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-indigo-700 dark:from-white dark:via-slate-100 dark:to-indigo-300 bg-clip-text text-transparent">
-                DoubtLoop
+                DoubtsHub
               </span>
               <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50 hidden xs:inline-block">
-                LOOP
+                HUB
               </span>
             </div>
           </Link>

@@ -58,10 +58,10 @@ export const LandingPage: React.FC = () => {
           </div>
           <div>
             <span className="font-extrabold text-xl tracking-tight text-white">
-              SolveMyDoubt
+              DoubtsHub
             </span>
             <span className="text-[10px] ml-1.5 uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-800/60">
-              DoubtLoop
+              DoubtsHub
             </span>
           </div>
         </div>
@@ -167,7 +167,7 @@ export const LandingPage: React.FC = () => {
               <span className="w-3 h-3 rounded-full bg-amber-500/80" />
               <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
               <span className="ml-3 font-mono text-[11px] text-slate-500">
-                https://doubtloop.academic.edu/doubts/cs-201
+                https://doubtshub.vercel.app/doubts/cs-201
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -252,7 +252,7 @@ export const LandingPage: React.FC = () => {
             From unanswered doubt to permanent knowledge asset
           </h2>
           <p className="mt-4 text-sm sm:text-base text-slate-400">
-            Traditional forum threads get buried. DoubtLoop employs structured peer explanations, faculty endorsements, and persistent topic indexing.
+            Traditional forum threads get buried. DoubtsHub employs structured peer explanations, faculty endorsements, and persistent topic indexing.
           </p>
         </div>
 
@@ -302,7 +302,7 @@ export const LandingPage: React.FC = () => {
                 Unanswered Doubt Rescue System
               </h2>
               <p className="text-sm text-slate-300 leading-relaxed">
-                Most academic forums suffer from the "abandoned question" syndrome where difficult conceptual questions rot with 0 answers. DoubtLoop solves this with deterministic time thresholds:
+                Most academic forums suffer from the "abandoned question" syndrome where difficult conceptual questions rot with 0 answers. DoubtsHub solves this with deterministic time thresholds:
               </p>
               <ul className="space-y-2 text-xs text-slate-400">
                 <li className="flex items-center gap-2">
@@ -434,7 +434,7 @@ export const LandingPage: React.FC = () => {
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-slate-900 py-8 text-center text-xs text-slate-500">
-        <p>© {new Date().getFullYear()} SolveMyDoubt (DoubtLoop). All academic rights reserved.</p>
+        <p>© {new Date().getFullYear()} DoubtsHub. All academic rights reserved.</p>
       </footer>
     </div>
   );
