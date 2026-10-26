@@ -68,17 +68,7 @@ export const AuthPage: React.FC = () => {
               }
             },
           });
-
-          const btnContainer = document.getElementById('g-signin-button');
-          if (btnContainer && btnContainer.childElementCount === 0) {
-            (window as any).google.accounts.id.renderButton(btnContainer, {
-              theme: 'outline',
-              size: 'large',
-              width: 380,
-              text: 'continue_with',
-              shape: 'pill',
-            });
-          }
+          // Native button rendered via unified Continue with Google button below
         } catch (err) {
           console.warn('Google Identity initialization notice:', err);
         }
@@ -94,6 +84,26 @@ export const AuthPage: React.FC = () => {
     setIsSubmitting(true);
     setErrorMessage(null);
     try {
+      if (typeof window !== 'undefined' && (window as any).google?.accounts?.id && googleClientId) {
+        let promptHandled = false;
+        try {
+          (window as any).google.accounts.id.prompt((notification: any) => {
+            promptHandled = true;
+            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+              signInWithGoogle().then(({ error }) => {
+                if (error) setErrorMessage(error.message);
+              });
+            }
+          });
+        } catch {
+          // fallback to Supabase
+        }
+        if (promptHandled) {
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const { error } = await signInWithGoogle();
       if (error) {
         setErrorMessage(error.message);
@@ -215,8 +225,7 @@ export const AuthPage: React.FC = () => {
           </div>
         )}
 
-        {/* Google Identity Services One-Tap / Pop-up Button */}
-        <div id="g-signin-button" className="w-full flex justify-center min-h-[40px] [&>div]:w-full" />
+
 
         {/* Primary Action: Continue with Google OAuth */}
         <button

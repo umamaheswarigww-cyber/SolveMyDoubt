@@ -42,7 +42,9 @@ import {
   FacultyVerifiedBadge,
   AcceptedAnswerBadge,
 } from '../components/common/BadgeSystem';
-import { formatTimeAgo, formatExactDate, renderFormattedContent } from '../lib/utils';
+import { formatTimeAgo, formatExactDate, renderFormattedContent, downloadImage } from '../lib/utils';
+import { ImageAnnotatorModal } from '../components/common/ImageAnnotatorModal';
+import { PenTool, Download } from 'lucide-react';
 import { Answer, Comment, ExplanationMode, Question } from '../types';
 
 export const QuestionDetailPage: React.FC = () => {
@@ -68,6 +70,8 @@ export const QuestionDetailPage: React.FC = () => {
   const [escalationReason, setEscalationReason] = useState('');
   const [activeFacultyReviewAnswerId, setActiveFacultyReviewAnswerId] = useState<string | null>(null);
   const [facultyFeedbackText, setFacultyFeedbackText] = useState('');
+  const [annotatorImageUrl, setAnnotatorImageUrl] = useState<string | null>(null);
+  const [isAnnotatorOpen, setIsAnnotatorOpen] = useState(false);
   const [feedbackNotice, setFeedbackNotice] = useState<string | null>(null);
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
 
@@ -111,7 +115,47 @@ export const QuestionDetailPage: React.FC = () => {
       }
     }
     loadQuestionDetails();
-    return () => {
+    
+  const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+
+    const annotateBtn = target.closest('button[data-action="annotate"]') as HTMLElement;
+    if (annotateBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const src = annotateBtn.getAttribute('data-src');
+      if (src) {
+        setAnnotatorImageUrl(src);
+        setIsAnnotatorOpen(true);
+      }
+      return;
+    }
+
+    const downloadBtn = target.closest('button[data-action="download"]') as HTMLElement;
+    if (downloadBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const src = downloadBtn.getAttribute('data-src');
+      if (src) {
+        downloadImage(src, 'doubt-photo.png');
+      }
+      return;
+    }
+
+    const interactiveImg = target.closest('img.doubts-interactive-image') as HTMLImageElement;
+    if (interactiveImg) {
+      e.preventDefault();
+      e.stopPropagation();
+      const src = interactiveImg.getAttribute('data-image-url') || interactiveImg.src;
+      if (src) {
+        setAnnotatorImageUrl(src);
+        setIsAnnotatorOpen(true);
+      }
+      return;
+    }
+  };
+
+  return () => {
       mounted = false;
     };
   }, [id]);
@@ -874,6 +918,20 @@ export const QuestionDetailPage: React.FC = () => {
           </div>
         </form>
       </section>
+    
+      {/* Image Annotator & Inspector Modal */}
+      {isAnnotatorOpen && annotatorImageUrl && (
+        <ImageAnnotatorModal
+          isOpen={isAnnotatorOpen}
+          imageUrl={annotatorImageUrl}
+          onClose={() => setIsAnnotatorOpen(false)}
+          onSaveAnnotated={(annotatedDataUrl) => {
+            if (attachedAnswerImage && annotatorImageUrl === attachedAnswerImage) {
+              setAttachedAnswerImage(annotatedDataUrl);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

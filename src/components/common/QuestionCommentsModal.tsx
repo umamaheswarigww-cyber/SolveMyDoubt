@@ -20,7 +20,9 @@ import confetti from 'canvas-confetti';
 import { Question, Answer } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { UserDisplayName, FacultyVerifiedBadge, AcceptedAnswerBadge, MemberCheckmark } from './BadgeSystem';
-import { formatTimeAgo, renderFormattedContent, cn } from '../../lib/utils';
+import { formatTimeAgo, renderFormattedContent, downloadImage, cn } from '../../lib/utils';
+import { ImageAnnotatorModal } from './ImageAnnotatorModal';
+import { PenTool, Download } from 'lucide-react';
 import { getAnswersForQuestion, createAnswer, castVote, facultyVerifyAnswer, toggleAcceptAnswer, deleteQuestion } from '../../lib/api';
 
 interface QuestionCommentsModalProps {
@@ -51,6 +53,8 @@ export const QuestionCommentsModal: React.FC<QuestionCommentsModalProps> = ({
   const [facultyFeedbackText, setFacultyFeedbackText] = useState('');
   const [activeNoteAnswerId, setActiveNoteAnswerId] = useState<string | null>(null);
   const [feedbackNotice, setFeedbackNotice] = useState<string | null>(null);
+  const [annotatorImageUrl, setAnnotatorImageUrl] = useState<string | null>(null);
+  const [isAnnotatorOpen, setIsAnnotatorOpen] = useState(false);
 
   const commentsEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -89,6 +93,47 @@ export const QuestionCommentsModal: React.FC<QuestionCommentsModalProps> = ({
       mounted = false;
     };
   }, [isOpen, question]);
+
+  
+  // Image click delegation handler for annotations and downloads
+  const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+
+    const annotateBtn = target.closest('button[data-action="annotate"]') as HTMLElement;
+    if (annotateBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const src = annotateBtn.getAttribute('data-src');
+      if (src) {
+        setAnnotatorImageUrl(src);
+        setIsAnnotatorOpen(true);
+      }
+      return;
+    }
+
+    const downloadBtn = target.closest('button[data-action="download"]') as HTMLElement;
+    if (downloadBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const src = downloadBtn.getAttribute('data-src');
+      if (src) {
+        downloadImage(src, 'doubt-photo.png');
+      }
+      return;
+    }
+
+    const interactiveImg = target.closest('img.doubts-interactive-image') as HTMLImageElement;
+    if (interactiveImg) {
+      e.preventDefault();
+      e.stopPropagation();
+      const src = interactiveImg.getAttribute('data-image-url') || interactiveImg.src;
+      if (src) {
+        setAnnotatorImageUrl(src);
+        setIsAnnotatorOpen(true);
+      }
+      return;
+    }
+  };
 
   if (!isOpen || !question) return null;
 
@@ -431,7 +476,7 @@ export const QuestionCommentsModal: React.FC<QuestionCommentsModalProps> = ({
         </div>
 
         {/* 2. Scrollable Body: Question Details + Comments/Answers Stream */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 divide-y divide-slate-100 dark:divide-slate-800/60">
+        <div onClick={handleContentClick} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 divide-y divide-slate-100 dark:divide-slate-800/60">
           
           {/* Main Question Display */}
           <div className="space-y-3 pb-2">
@@ -732,14 +777,40 @@ export const QuestionCommentsModal: React.FC<QuestionCommentsModalProps> = ({
             </div>
           </div>
 
-          {/* Attached image preview */}
+          {/* Attached image preview with Annotate and Download */}
           {attachedImage && (
-            <div className="relative inline-block rounded-xl overflow-hidden border border-emerald-500/40 bg-slate-900 shadow-sm ml-1">
-              <img src={attachedImage} alt="Attachment Preview" className="h-20 w-auto max-w-[200px] object-cover" />
+            <div className="relative inline-flex items-center gap-3 p-2 rounded-2xl border border-emerald-500/40 bg-slate-900 shadow-sm ml-1 flex-wrap">
+              <img src={attachedImage} alt="Attachment Preview" className="h-16 w-auto max-w-[140px] rounded-lg object-cover border border-slate-700" />
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAnnotatorImageUrl(attachedImage);
+                      setIsAnnotatorOpen(true);
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] flex items-center gap-1 shadow-xs transition-transform active:scale-95"
+                    title="Annotate before posting"
+                  >
+                    <PenTool className="w-3 h-3" />
+                    <span>Annotate</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => downloadImage(attachedImage, 'attached-photo.png')}
+                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[11px] flex items-center gap-1 border border-slate-700 shadow-xs transition-transform active:scale-95"
+                    title="Download photo"
+                  >
+                    <Download className="w-3 h-3" />
+                    <span>Download</span>
+                  </button>
+                </div>
+                <span className="text-[10px] text-emerald-400 font-medium">Attached to comment</span>
+              </div>
               <button
                 type="button"
                 onClick={() => setAttachedImage(null)}
-                className="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs font-bold shadow-md hover:bg-rose-500"
+                className="ml-auto w-6 h-6 rounded-full bg-rose-600/80 hover:bg-rose-500 text-white flex items-center justify-center text-xs font-bold shadow-md transition-colors"
                 title="Remove image"
               >
                 ×
@@ -774,6 +845,20 @@ export const QuestionCommentsModal: React.FC<QuestionCommentsModalProps> = ({
           </div>
         </form>
       </div>
+
+      {/* Image Annotator Modal */}
+      {isAnnotatorOpen && annotatorImageUrl && (
+        <ImageAnnotatorModal
+          isOpen={isAnnotatorOpen}
+          imageUrl={annotatorImageUrl}
+          onClose={() => setIsAnnotatorOpen(false)}
+          onSaveAnnotated={(annotatedDataUrl) => {
+            if (attachedImage && annotatorImageUrl === attachedImage) {
+              setAttachedImage(annotatedDataUrl);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

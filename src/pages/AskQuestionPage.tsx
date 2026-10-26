@@ -13,14 +13,15 @@ import {
   FileText,
   ArrowRight,
   X,
-  Lightbulb,
+  PenTool,
+  Download,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { INITIAL_TAGS, INITIAL_QUESTIONS } from '../lib/mockData';
-import { DoubtQualityAssistant } from '../components/common/DoubtQualityAssistant';
 import { QuestionDifficulty, Tag } from '../types';
-import { renderFormattedContent } from '../lib/utils';
+import { renderFormattedContent, downloadImage } from '../lib/utils';
 import { createQuestion, getTags } from '../lib/api';
+import { ImageAnnotatorModal } from '../components/common/ImageAnnotatorModal';
 
 const DRAFT_STORAGE_KEY = 'solvemydoubt_draft';
 
@@ -32,11 +33,16 @@ export const AskQuestionPage: React.FC = () => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(['tag-loss']);
-  const [difficulty, setDifficulty] = useState<QuestionDifficulty>('Intermediate');
+  // Default difficulty to Intermediate under the hood without burdening the user with difficulty selectors
+  const [difficulty] = useState<QuestionDifficulty>('Intermediate');
   const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Attachment state (supporting photos/diagrams with instant preview, annotation, and download)
   const [attachmentName, setAttachmentName] = useState<string | null>(null);
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const [isAnnotatorOpen, setIsAnnotatorOpen] = useState(false);
 
   const [tags, setTags] = useState<Tag[]>(INITIAL_TAGS);
 
@@ -64,7 +70,6 @@ export const AskQuestionPage: React.FC = () => {
         if (Array.isArray(parsed.selectedTagIds) && parsed.selectedTagIds.length > 0) {
           setSelectedTagIds(parsed.selectedTagIds);
         }
-        if (parsed.difficulty) setDifficulty(parsed.difficulty);
       }
     } catch {}
   }, []);
@@ -74,10 +79,10 @@ export const AskQuestionPage: React.FC = () => {
     if (title || body) {
       localStorage.setItem(
         DRAFT_STORAGE_KEY,
-        JSON.stringify({ title, body, selectedTagIds, difficulty })
+        JSON.stringify({ title, body, selectedTagIds })
       );
     }
-  }, [title, body, selectedTagIds, difficulty]);
+  }, [title, body, selectedTagIds]);
 
   // Insert helpers for math and code
   const handleInsertMath = () => {
@@ -120,7 +125,7 @@ export const AskQuestionPage: React.FC = () => {
 
   // Duplicate / Similar questions detection
   const similarQuestions = useMemo(() => {
-    if (!title || title.trim().length < 8) return [];
+    if (!title || title.trim().length < 5) return [];
     const keywords = title.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
     return INITIAL_QUESTIONS.filter((q) => {
       const qText = `${q.title} ${q.body}`.toLowerCase();
@@ -134,6 +139,28 @@ export const AskQuestionPage: React.FC = () => {
     );
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAttachmentName(file.name);
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAttachedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setAttachedImage(null);
+    }
+  };
+
+  const handleRemoveAttachment = () => {
+    setAttachmentName(null);
+    setAttachedImage(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -141,18 +168,19 @@ export const AskQuestionPage: React.FC = () => {
     const trimmedTitle = title.trim();
     const trimmedBody = body.trim();
 
-    if (!trimmedTitle || trimmedTitle.length < 15) {
-      setErrorMessage('Please provide a descriptive doubt title (at least 15 characters).');
+    // Frictionless submission: require non-empty title and body without arbitrary minimums
+    if (!trimmedTitle) {
+      setErrorMessage('Please enter your doubt title.');
       return;
     }
 
-    if (!trimmedBody || trimmedBody.length < 30) {
-      setErrorMessage('Please describe the context and what you tried (at least 30 characters).');
+    if (!trimmedBody) {
+      setErrorMessage('Please describe the context or what you need help with.');
       return;
     }
 
     if (selectedTagIds.length === 0) {
-      setErrorMessage('Please select at least one topic tag so peers can discover your question.');
+      setErrorMessage('Please select at least one topic tag so peers and faculty can discover your question.');
       return;
     }
 
@@ -161,12 +189,17 @@ export const AskQuestionPage: React.FC = () => {
     try {
       const authorId = user?.id || (isGuest ? 'guest-author' : 'member-author');
 
+      let finalBody = trimmedBody;
+      if (attachedImage) {
+        finalBody = `${finalBody}\n\n![${attachmentName || 'Doubt Attachment'}](${attachedImage})`;
+      }
+
       const { data, error } = await createQuestion({
         title: trimmedTitle,
-        body: trimmedBody,
+        body: finalBody,
         difficulty,
         tagIds: selectedTagIds,
-        attachmentUrl: attachmentName ? 'https://example.com/attachment.pdf' : null,
+        attachmentUrl: attachedImage || (attachmentName ? 'https://example.com/attachment.pdf' : null),
         authorId,
         authorProfile: profile,
       });
@@ -193,310 +226,319 @@ export const AskQuestionPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-full min-w-0 space-y-6">
+    <div className="w-full max-w-4xl mx-auto space-y-6 min-w-0 pb-12">
       {/* Header */}
       <div className="space-y-1">
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
           Ask a Doubt
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-          Get verified explanations from peers and professors. If unresolved after 12h, your question automatically enters the Rescue Queue.
+          Get verified explanations from peers and faculty professors. If unresolved after 12h, your question automatically enters the Rescue Queue.
         </p>
       </div>
 
-      {/* Main 2-Column Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start min-w-0">
-        {/* Center Primary Form (8 cols on XL, full width on medium/mobile) */}
-        <form onSubmit={handleSubmit} noValidate className="xl:col-span-8 space-y-6 min-w-0 w-full">
-          {errorMessage && (
-            <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs sm:text-sm flex items-center gap-3 animate-in fade-in slide-in-from-top-1">
-              <AlertCircle className="w-5 h-5 shrink-0" />
-              <span className="font-medium">{errorMessage}</span>
+      {/* Primary Clean Form (Full Width, without Doubt Quality Assistant or Question Difficulty) */}
+      <form onSubmit={handleSubmit} noValidate className="space-y-6 min-w-0 w-full">
+        {errorMessage && (
+          <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs sm:text-sm flex items-center gap-3 animate-in fade-in slide-in-from-top-1">
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            <span className="font-medium">{errorMessage}</span>
+          </div>
+        )}
+
+        {/* 1. Doubt Title Field */}
+        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 p-5 shadow-2xs space-y-2 min-w-0">
+          <label className="block text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+            Doubt Title <span className="text-rose-500">*</span>
+          </label>
+
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              if (errorMessage) setErrorMessage(null);
+            }}
+            placeholder="e.g. Why does cross-entropy penalize confident wrong predictions?"
+            className="w-full px-4 py-3 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100 font-medium placeholder:text-slate-400 min-w-0 box-border"
+          />
+
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+            Frame your title as a clear question. Identify the exact algorithm, theorem, or conceptual difficulty.
+          </p>
+        </div>
+
+        {/* Similar Questions Detection Alert */}
+        {similarQuestions.length > 0 && (
+          <div className="rounded-2xl border border-indigo-500/30 bg-indigo-50/50 dark:bg-indigo-950/30 p-4 space-y-2 text-xs min-w-0">
+            <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 font-bold">
+              <Sparkles className="w-4 h-4 shrink-0 text-cyan-400" />
+              <span>Existing Similar Discussions Found</span>
             </div>
-          )}
-
-          {/* 1. Question Title Field */}
-          <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 p-5 shadow-2xs space-y-2 min-w-0">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                Doubt Title <span className="text-rose-500">*</span>
-              </label>
-              <span className="text-[11px] text-slate-400 font-mono">
-                {title.length} characters
-              </span>
-            </div>
-
-            {/* Short clear placeholder that never clips */}
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                if (errorMessage) setErrorMessage(null);
-              }}
-              placeholder="e.g. Why does cross-entropy penalize confident wrong predictions?"
-              className="w-full px-4 py-3 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100 font-medium placeholder:text-slate-400 min-w-0 box-border"
-            />
-
-            {/* Concise helper text underneath explaining what to enter */}
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-              Frame your title as a clear question. Identify the exact algorithm, theorem, or conceptual difficulty.
+            <p className="text-[11px] text-slate-600 dark:text-slate-400">
+              These answered questions might already have the explanation you need:
             </p>
+            <div className="space-y-1.5 pt-1">
+              {similarQuestions.map((q) => (
+                <Link
+                  key={q.id}
+                  to={`/doubt/${q.id}`}
+                  target="_blank"
+                  className="block p-2 rounded-lg bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-900/50 hover:border-indigo-400 transition-colors font-medium text-slate-900 dark:text-slate-100 hover:text-indigo-600 truncate text-[11px]"
+                >
+                  • {q.title}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 2. Detailed Description & Rich Body Field */}
+        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 p-5 shadow-2xs space-y-3 min-w-0">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <label className="block text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                Detailed Context & Attempted Solution <span className="text-rose-500">*</span>
+              </label>
+              <p className="text-[11px] text-slate-500">
+                Explain what you tried, compiler errors, or where your reasoning breaks down.
+              </p>
+            </div>
+
+            {/* Write vs Preview Toggle */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl shrink-0">
+              <button
+                type="button"
+                onClick={() => setActiveTab('write')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === 'write'
+                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs'
+                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Write
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('preview')}
+                className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === 'preview'
+                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs'
+                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Preview</span>
+              </button>
+            </div>
           </div>
 
-          {/* Similar Questions Detection Alert */}
-          {similarQuestions.length > 0 && (
-            <div className="rounded-2xl border border-indigo-500/30 bg-indigo-50/50 dark:bg-indigo-950/30 p-4 space-y-2 text-xs min-w-0">
-              <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 font-bold">
-                <Sparkles className="w-4 h-4 shrink-0 text-cyan-400" />
-                <span>Existing Similar Discussions Found</span>
-              </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                These answered questions might already have the explanation you need:
-              </p>
-              <div className="space-y-1.5 pt-1">
-                {similarQuestions.map((q) => (
-                  <Link
-                    key={q.id}
-                    to={`/doubt/${q.id}`}
-                    target="_blank"
-                    className="block p-2 rounded-lg bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-900/50 hover:border-indigo-400 transition-colors font-medium text-slate-900 dark:text-slate-100 hover:text-indigo-600 truncate text-[11px]"
-                  >
-                    • {q.title}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Quick formatting toolbar */}
+          <div className="flex items-center gap-2 pt-1 border-b border-slate-100 dark:border-slate-800 pb-2">
+            <button
+              type="button"
+              onClick={handleInsertMath}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold transition-colors"
+              title="Insert LaTeX Math Formula"
+            >
+              <Calculator className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Math ($)</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleInsertCode}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold transition-colors"
+              title="Insert Code Snippet"
+            >
+              <Code2 className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Code (```)</span>
+            </button>
+          </div>
 
-          {/* 2. Description & Rich Body Field */}
-          <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 p-5 shadow-2xs space-y-3 min-w-0">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div>
-                <label className="block text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                  Detailed Context & Attempted Solution <span className="text-rose-500">*</span>
-                </label>
-                <p className="text-[11px] text-slate-500">
-                  Explain what you tried, compiler errors, or where your reasoning breaks down.
-                </p>
-              </div>
-
-              {/* Write vs Preview Toggle */}
-              <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('write')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                    activeTab === 'write'
-                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs'
-                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  Write
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('preview')}
-                  className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                    activeTab === 'preview'
-                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs'
-                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>Preview</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Quick formatting toolbar */}
-            <div className="flex items-center gap-2 pt-1 border-b border-slate-100 dark:border-slate-800 pb-2">
-              <button
-                type="button"
-                onClick={handleInsertMath}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold transition-colors"
-                title="Insert LaTeX Math Formula"
-              >
-                <Calculator className="w-3.5 h-3.5 text-indigo-500" />
-                <span>Math ($)</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleInsertCode}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold transition-colors"
-                title="Insert Code Snippet"
-              >
-                <Code2 className="w-3.5 h-3.5 text-indigo-500" />
-                <span>Code (```)</span>
-              </button>
-            </div>
-
-            {activeTab === 'write' ? (
-              <textarea
-                ref={textareaRef}
-                value={body}
-                onChange={(e) => {
-                  setBody(e.target.value);
-                  if (errorMessage) setErrorMessage(null);
-                }}
-                rows={11}
-                placeholder="Include your background context, formula derivations, code examples, or where your understanding breaks down.
+          {activeTab === 'write' ? (
+            <textarea
+              ref={textareaRef}
+              value={body}
+              onChange={(e) => {
+                setBody(e.target.value);
+                if (errorMessage) setErrorMessage(null);
+              }}
+              rows={9}
+              placeholder="Include your background context, formula derivations, code examples, or where your understanding breaks down.
 
 For math formulas: $E = mc^2$ or $$\int f(x)dx$$
 For code blocks: ```python or ```cpp"
-                className="w-full p-4 rounded-xl text-xs sm:text-sm font-mono bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100 leading-relaxed placeholder:text-slate-400 placeholder:font-sans min-h-[220px] box-border"
-              />
-            ) : (
-              <div
-                className="w-full p-4 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 min-h-[220px] leading-relaxed text-slate-900 dark:text-slate-100 prose dark:prose-invert max-w-none overflow-x-auto"
-                dangerouslySetInnerHTML={{
-                  __html: renderFormattedContent(body || '*No content provided for preview yet.*'),
-                }}
-              />
-            )}
+              className="w-full p-4 rounded-xl text-xs sm:text-sm font-mono bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100 leading-relaxed placeholder:text-slate-400 placeholder:font-sans min-h-[180px] box-border"
+            />
+          ) : (
+            <div
+              className="w-full p-4 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 min-h-[180px] leading-relaxed text-slate-900 dark:text-slate-100 prose dark:prose-invert max-w-none overflow-x-auto"
+              dangerouslySetInnerHTML={{
+                __html: renderFormattedContent(body || '*No content provided for preview yet.*'),
+              }}
+            />
+          )}
 
-            <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 flex-wrap gap-2">
-              <span className="flex items-center gap-1">
-                <Calculator className="w-3.5 h-3.5 text-indigo-500" />
-                <span>KaTeX Math supported: <code className="text-indigo-600 dark:text-indigo-400 font-mono font-bold">$x^2$</code></span>
-              </span>
-              <span className="flex items-center gap-1">
-                <Code2 className="w-3.5 h-3.5 text-indigo-500" />
-                <span>Code blocks supported: <code className="text-indigo-600 dark:text-indigo-400 font-mono font-bold">```python</code></span>
-              </span>
-            </div>
+          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 flex-wrap gap-2">
+            <span className="flex items-center gap-1">
+              <Calculator className="w-3.5 h-3.5 text-indigo-500" />
+              <span>KaTeX Math supported: <code className="text-indigo-600 dark:text-indigo-400 font-mono font-bold">$x^2$</code></span>
+            </span>
+            <span className="flex items-center gap-1">
+              <Code2 className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Code blocks supported: <code className="text-indigo-600 dark:text-indigo-400 font-mono font-bold">```python</code></span>
+            </span>
           </div>
+        </div>
 
-          {/* 3. Topic Tags & Difficulty Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
-            {/* Topic Tags Selector */}
-            <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 p-5 shadow-2xs space-y-2.5 min-w-0">
-              <div className="flex items-center justify-between">
-                <label className="block text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                  Topic Tags <span className="text-rose-500">*</span>
-                </label>
-                <span className="text-[11px] text-slate-400">
-                  {selectedTagIds.length} selected
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {tags.map((tag) => {
-                  const isSelected = selectedTagIds.includes(tag.id);
-                  return (
-                    <button
-                      type="button"
-                      key={tag.id}
-                      onClick={() => toggleTag(tag.id)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                        isSelected
-                          ? 'bg-indigo-600 text-white font-bold shadow-xs'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                      }`}
-                    >
-                      #{tag.name}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="text-[10px] text-slate-400">
-                Helps peers and faculty specialists quickly discover your question.
-              </p>
-            </div>
-
-            {/* Coursework Difficulty */}
-            <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 p-5 shadow-2xs space-y-2.5 min-w-0">
-              <label className="block text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                Question Difficulty
-              </label>
-              <div className="grid grid-cols-3 gap-1.5 pt-1">
-                {(['Introductory', 'Intermediate', 'Advanced'] as QuestionDifficulty[]).map((diff) => (
-                  <button
-                    type="button"
-                    key={diff}
-                    onClick={() => setDifficulty(diff)}
-                    className={`py-2 px-1 rounded-xl text-[11px] font-bold text-center transition-all truncate ${
-                      difficulty === diff
-                        ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                    }`}
-                  >
-                    {diff}
-                  </button>
-                ))}
-              </div>
-              <p className="text-[10px] text-slate-400">
-                Guides the depth of formulas and explanations provided in answers.
-              </p>
-            </div>
+        {/* 3. Topic Tags (Clean Full Width Selector) */}
+        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 p-5 shadow-2xs space-y-2.5 min-w-0">
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+              Topic Tags <span className="text-rose-500">*</span>
+            </label>
+            <span className="text-[11px] text-slate-400">
+              {selectedTagIds.length} selected
+            </span>
           </div>
+          <div className="flex flex-wrap gap-2 pt-1">
+            {tags.map((tag) => {
+              const isSelected = selectedTagIds.includes(tag.id);
+              return (
+                <button
+                  type="button"
+                  key={tag.id}
+                  onClick={() => toggleTag(tag.id)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                    isSelected
+                      ? 'bg-indigo-600 text-white font-bold shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  #{tag.name}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[11px] text-slate-400">
+            Helps peers and faculty specialists quickly discover and answer your question.
+          </p>
+        </div>
 
-          {/* 4. File Attachment */}
-          <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 p-4 text-xs text-slate-500 flex items-center justify-between min-w-0 gap-3">
+        {/* 4. Photo / Diagram / File Attachment with Annotate & Download */}
+        <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 p-4 text-xs text-slate-500 space-y-3 min-w-0">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 truncate">
               <Upload className="w-4 h-4 text-slate-400 shrink-0" />
               <span className="truncate">
                 {attachmentName ? (
-                  <strong className="text-slate-800 dark:text-slate-200">{attachmentName}</strong>
+                  <strong className="text-slate-800 dark:text-slate-200 font-semibold">{attachmentName}</strong>
                 ) : (
-                  'Optional attachment (PDF, diagram PNG/JPEG up to 5MB)'
+                  'Attach photo, handwritten math notes, or diagram (PNG, JPEG, PDF)'
                 )}
               </span>
             </div>
-            <label className="cursor-pointer px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 transition-colors shrink-0">
-              <span>{attachmentName ? 'Change' : 'Browse'}</span>
+
+            <label className="cursor-pointer px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 transition-colors shrink-0">
+              <span>{attachmentName ? 'Change Photo' : 'Browse File'}</span>
               <input
                 type="file"
                 className="hidden"
                 accept=".pdf,.png,.jpg,.jpeg"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) setAttachmentName(file.name);
-                }}
+                onChange={handleFileSelect}
               />
             </label>
           </div>
 
-          {/* Submit Actions */}
-          <div className="flex items-center justify-between pt-2">
-            <Link
-              to="/explore"
-              className="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
-            >
-              Cancel
-            </Link>
+          {/* Image Preview with Annotate and Download controls */}
+          {attachedImage && (
+            <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-950/60 p-2 flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-3">
+                <img
+                  src={attachedImage}
+                  alt="Doubt attachment preview"
+                  className="h-20 w-24 object-cover rounded-lg border border-slate-700"
+                />
+                <div className="space-y-1">
+                  <span className="font-bold text-xs text-slate-200 block truncate max-w-[200px]">
+                    {attachmentName}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsAnnotatorOpen(true)}
+                      className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] flex items-center gap-1 shadow-xs transition-transform active:scale-95"
+                    >
+                      <PenTool className="w-3 h-3" />
+                      <span>Annotate Photo</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => downloadImage(attachedImage, attachmentName || 'doubt-photo.png')}
+                      className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[11px] flex items-center gap-1 border border-slate-700 shadow-xs transition-transform active:scale-95"
+                    >
+                      <Download className="w-3 h-3" />
+                      <span>Download</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-700 text-white hover:from-indigo-500 hover:to-indigo-600 shadow-md shadow-indigo-600/30 transition-all active:scale-95 disabled:opacity-50"
-            >
-              <span>{isSubmitting ? 'Publishing Doubt...' : 'Publish to Academic Network'}</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        </form>
+              <button
+                type="button"
+                onClick={handleRemoveAttachment}
+                className="px-2.5 py-1 rounded-lg text-rose-500 hover:bg-rose-500/10 font-bold text-xs flex items-center gap-1 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Remove</span>
+              </button>
+            </div>
+          )}
+        </div>
 
-        {/* Right Assistant Column (4 cols on XL, stacks below form on < XL) */}
-        <aside className="xl:col-span-4 space-y-6 min-w-0 w-full">
-          <DoubtQualityAssistant
-            title={title}
-            body={body}
-            selectedTagIds={selectedTagIds}
-            onInsertMath={handleInsertMath}
-            onInsertCode={handleInsertCode}
-          />
+        {/* Submit Actions */}
+        <div className="flex items-center justify-between pt-2">
+          <Link
+            to="/explore"
+            className="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+          >
+            Cancel
+          </Link>
 
-          <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 p-5 space-y-3 text-xs shadow-sm">
-            <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span>DoubtsHub Escalation Protocol</span>
-            </h4>
-            <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
-              If your question receives no verified peer answers within 12 hours, DoubtsHub automatically escalates it to teaching assistants and faculty reviewers.
-            </p>
-          </div>
-        </aside>
-      </div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-700 text-white hover:from-indigo-500 hover:to-indigo-600 shadow-md shadow-indigo-600/30 transition-all active:scale-95 disabled:opacity-50"
+          >
+            <span>{isSubmitting ? 'Publishing Doubt...' : 'Publish to Academic Network'}</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* DoubtsHub Escalation Protocol Informational Note */}
+        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 p-4 space-y-2 text-xs shadow-xs">
+          <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+            <span>DoubtsHub Escalation Guarantee</span>
+          </h4>
+          <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
+            If your question receives no verified peer answers within 12 hours, DoubtsHub automatically escalates it to teaching assistants and faculty reviewers.
+          </p>
+        </div>
+      </form>
+
+      {/* Image Annotator Modal */}
+      {isAnnotatorOpen && attachedImage && (
+        <ImageAnnotatorModal
+          isOpen={isAnnotatorOpen}
+          imageUrl={attachedImage}
+          imageAlt={attachmentName || 'Attachment'}
+          onClose={() => setIsAnnotatorOpen(false)}
+          onSaveAnnotated={(annotatedDataUrl) => {
+            setAttachedImage(annotatedDataUrl);
+          }}
+        />
+      )}
     </div>
   );
 };

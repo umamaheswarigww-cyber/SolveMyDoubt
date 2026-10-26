@@ -90,10 +90,20 @@ export function renderFormattedContent(text: string): string {
     </div>`;
   });
 
-  // Markdown images ![alt](url)
+  // Markdown images ![alt](url) with interactive Annotation and Download controls
   processed = processed.replace(
     /!\[(.*?)\]\((.*?)\)/g,
-    '<div class="my-3 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-950/40 inline-block max-w-full shadow-sm"><img src="$2" alt="$1" class="max-h-96 w-auto max-w-full rounded-2xl object-contain mx-auto" loading="lazy" /></div>'
+    `<div class="doubts-image-container relative group my-3 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-950/40 inline-block max-w-full shadow-sm">
+      <img src="$2" alt="$1" class="doubts-interactive-image max-h-96 w-auto max-w-full rounded-2xl object-contain mx-auto cursor-pointer transition-transform hover:scale-[1.01]" loading="lazy" data-image-url="$2" data-image-alt="$1" />
+      <div class="image-actions-overlay absolute top-2 right-2 flex items-center gap-1.5 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-slate-900/85 backdrop-blur-md px-2 py-1.5 rounded-xl border border-white/20 shadow-lg z-10 pointer-events-auto">
+        <button type="button" class="btn-annotate-img px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold flex items-center gap-1 shadow-xs transition-transform active:scale-95 cursor-pointer" data-action="annotate" data-src="$2" data-alt="$1" title="Annotate, draw, or inspect this image">
+          ✏️ Annotate
+        </button>
+        <button type="button" class="btn-download-img px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-[11px] font-bold flex items-center gap-1 border border-slate-600 shadow-xs transition-transform active:scale-95 cursor-pointer" data-action="download" data-src="$2" data-alt="$1" title="Download this photo">
+          ⬇️ Download
+        </button>
+      </div>
+    </div>`
   );
 
   // Inline code `...`
@@ -107,4 +117,44 @@ export function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+
+/**
+ * Universal Image Downloader for DoubtsHub
+ * Supports Base64 data URLs, object URLs, and cross-origin images
+ */
+export async function downloadImage(url: string, filename: string = 'doubts-photo.png'): Promise<void> {
+  if (!url) return;
+  try {
+    if (url.startsWith('data:')) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      return;
+    }
+
+    const response = await fetch(url, { mode: 'cors' });
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = objectUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
+  } catch {
+    // Fallback for CORS restricted images
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
 }
