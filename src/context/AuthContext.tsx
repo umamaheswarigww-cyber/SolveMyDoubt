@@ -361,30 +361,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   /**
-   * Guest Sign-in using Supabase Anonymous session
+   * Guest Sign-in: Tries Supabase anonymous session if available,
+   * otherwise immediately provisions a guaranteed attributable local guest session.
    */
   const signInAsGuest = async (): Promise<{ error: Error | null }> => {
     if (isLiveSupabase && supabase) {
       try {
         const { data, error } = await signInAnonymously();
-        if (error) return { error };
-        if (data?.user) {
+        if (!error && data?.user) {
           await loadSupabaseProfile(data.user.id, true);
+          return { error: null };
         }
-        return { error: null };
+        if (error) {
+          console.info('Supabase anonymous auth disabled, proceeding with guaranteed local guest session:', error.message);
+        }
       } catch (err: any) {
-        return { error: err };
+        console.warn('Anonymous session initialization notice:', err);
       }
     }
 
-    // Unconfigured local guest session
+    // Guaranteed attributable local guest session
     const guestId = `guest-${Math.random().toString(36).substring(2, 9)}`;
     const guestProfile: Profile = {
       id: guestId,
       display_name: 'Guest Learner',
       username: `guest_${guestId.slice(-4)}`,
       avatar_url: null,
-      bio: 'Browsing DoubtLoop as guest learner.',
+      bio: 'Browsing DoubtsHub as guest learner.',
       department: 'Guest',
       year_of_study: 'Visitor',
       interests: [],
@@ -392,13 +395,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       is_anonymous: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      role: 'student',
     };
 
     const guestUser: AuthUser = {
       id: guestId,
       is_anonymous: true,
       profile: guestProfile,
-      roles: [],
+      roles: ['student'],
     };
 
     setUser(guestUser);

@@ -18,6 +18,7 @@ import {
   MessageSquare,
   HelpCircle,
   Clock,
+  User,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { MemberCheckmark, FacultyVerifiedBadge, GuestBadge } from '../components/common/BadgeSystem';
@@ -85,7 +86,7 @@ export const LandingPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={handleGuestEntry}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-slate-800 rounded-xl transition-all"
+            className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 text-xs font-semibold text-slate-200 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-slate-800 rounded-xl transition-all"
           >
             <span>Guest Mode</span>
           </button>
@@ -134,8 +135,9 @@ export const LandingPage: React.FC = () => {
           </Link>
           <button
             onClick={handleGuestEntry}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 transition-all border border-transparent hover:border-slate-800 active:scale-95"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-indigo-300 hover:text-white bg-indigo-950/40 hover:bg-indigo-900/60 border border-indigo-800/60 hover:border-indigo-600 transition-all active:scale-95 shadow-sm"
           >
+            <User className="w-4 h-4 text-indigo-400" />
             <span>Continue as Guest</span>
           </button>
         </div>

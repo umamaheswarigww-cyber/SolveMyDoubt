@@ -33,7 +33,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSearch }) => {
-  const { user, profile, isGuest, isMember, isFaculty, isAdmin, signOut, needsRoleSelection, setNeedsRoleSelection } = useAuth();
+  const { user, profile, isGuest, isMember, isFaculty, isAdmin, signOut, signInAsGuest, needsRoleSelection, setNeedsRoleSelection } = useAuth();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   // Role switching disabled while active session - role selection only on sign-in
@@ -314,6 +314,18 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
             </div>
           ) : (
             <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={async () => {
+                  await signInAsGuest();
+                  navigate('/dashboard');
+                }}
+                className="hidden sm:inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors whitespace-nowrap border border-indigo-200/50 dark:border-indigo-800/50"
+                title="Enter DoubtsHub as guest"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Guest</span>
+              </button>
               <Link
                 to="/auth?mode=signin"
                 className="px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors whitespace-nowrap"
@@ -375,7 +387,29 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
             })}
           </div>
 
-
+          {!user && (
+            <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  setMobileMenuOpen(false);
+                  await signInAsGuest();
+                  navigate('/dashboard');
+                }}
+                className="flex-1 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-bold text-xs text-center border border-indigo-200/60 dark:border-indigo-800/60 flex items-center justify-center gap-1.5"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Explore as Guest</span>
+              </button>
+              <Link
+                to="/auth?mode=signin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex-1 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs text-center"
+              >
+                Sign In
+              </Link>
+            </div>
+          )}
         </div>
       )}
 

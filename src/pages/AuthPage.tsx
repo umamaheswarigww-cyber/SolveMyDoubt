@@ -158,14 +158,11 @@ export const AuthPage: React.FC = () => {
     setIsSubmitting(true);
     setErrorMessage(null);
     try {
-      const { error } = await signInAsGuest();
-      if (error) {
-        setErrorMessage(error.message);
-      } else {
-        setShowRoleSelection(true);
-      }
+      await signInAsGuest();
+      navigate('/dashboard');
     } catch (err: any) {
-      setErrorMessage('Guest sign-in failed.');
+      console.warn('Guest sign-in error:', err);
+      navigate('/dashboard');
     } finally {
       setIsSubmitting(false);
     }
@@ -416,19 +413,19 @@ export const AuthPage: React.FC = () => {
           </button>
         </form>
 
-        {/* Guest Mode: Separate, clearly labelled option */}
+        {/* Instant Guest Access Card */}
         <div className="pt-2 border-t border-slate-800/80 text-center space-y-2">
           <button
             type="button"
             onClick={handleGuestSignIn}
             disabled={isSubmitting}
-            className="w-full py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm border border-slate-700/80 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 transition-all flex items-center justify-center gap-2 min-h-[44px] hover:-translate-y-0.5 active:scale-95"
+            className="w-full py-3.5 px-4 rounded-xl font-bold text-xs sm:text-sm border border-indigo-500/30 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 hover:border-indigo-500/60 text-indigo-300 hover:text-white transition-all flex items-center justify-center gap-2 min-h-[46px] hover:-translate-y-0.5 active:scale-95 shadow-sm"
           >
-            <User className="w-4 h-4 text-slate-400" />
-            <span>Continue as Guest (No Registration Required)</span>
+            <User className="w-4 h-4 text-indigo-400" />
+            <span>⚡ Continue as Guest (Instant Access)</span>
           </button>
-          <p className="text-[10px] text-slate-500">
-            Guest mode provides read and search access. Voting & verification require a signed-in account.
+          <p className="text-[10px] text-slate-400">
+            Instant search & doubt browsing without email or password.
           </p>
         </div>
 
