@@ -251,7 +251,7 @@ export const ExplorePage: React.FC = () => {
             <select
               value={selectedCourse}
               onChange={(e) => setSelectedCourse(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-xs sm:text-sm"
             >
               <option value="all">All Academic Courses</option>
               {courses.map((course) => (
@@ -270,7 +270,7 @@ export const ExplorePage: React.FC = () => {
             <select
               value={selectedDifficulty}
               onChange={(e) => setSelectedDifficulty(e.target.value as any)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-xs sm:text-sm"
             >
               <option value="all">All Difficulties</option>
               <option value="Introductory">Introductory</option>
@@ -287,7 +287,7 @@ export const ExplorePage: React.FC = () => {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value as any)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-xs sm:text-sm"
             >
               <option value="all">All Doubts</option>
               <option value="open">Open (Unanswered)</option>
@@ -304,7 +304,7 @@ export const ExplorePage: React.FC = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-xs sm:text-sm"
             >
               <option value="newest">Newest First</option>
               <option value="most_voted">Highest Voted</option>
@@ -323,7 +323,7 @@ export const ExplorePage: React.FC = () => {
               <button
                 key={tag.id}
                 onClick={() => setSelectedTag(isSelected ? 'all' : tag.slug)}
-                className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                   isSelected
                     ? 'bg-indigo-600 text-white font-bold'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -336,7 +336,7 @@ export const ExplorePage: React.FC = () => {
           {hasActiveFilters && (
             <button
               onClick={resetFilters}
-              className="ml-auto text-xs text-rose-600 dark:text-rose-400 hover:underline font-bold"
+              className="ml-auto px-3 py-1 rounded-xl text-xs sm:text-sm text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 font-bold transition-colors"
             >
               Reset Filters
             </button>

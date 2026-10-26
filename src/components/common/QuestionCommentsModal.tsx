@@ -639,7 +639,7 @@ export const QuestionCommentsModal: React.FC<QuestionCommentsModalProps> = ({
                           <button
                             onClick={() => handleAcceptAnswer(answer.id)}
                             className={cn(
-                              'px-2.5 py-1 rounded-lg font-bold text-xs flex items-center gap-1 transition-all',
+                              'px-3.5 py-1.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 transition-all min-h-[36px]',
                               answer.is_accepted
                                 ? 'bg-green-600 text-white shadow-xs'
                                 : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-green-50'

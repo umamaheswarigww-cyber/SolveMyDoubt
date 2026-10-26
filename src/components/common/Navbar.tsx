@@ -36,7 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
   const { user, profile, isGuest, isMember, isFaculty, isAdmin, signOut, needsRoleSelection, setNeedsRoleSelection } = useAuth();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [roleModalOpen, setRoleModalOpen] = useState(false);
+  // Role switching disabled while active session - role selection only on sign-in
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -191,31 +191,29 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
             {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          {/* Interactive Role Switcher Pill (Desktop + Mobile) */}
+          {/* Verified Session Role Badge (Locked for active session) */}
           {user && (
-            <button
-              onClick={() => setRoleModalOpen(true)}
+            <div
               className={cn(
-                'flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-xl text-[11px] sm:text-xs font-bold border transition-all active:scale-95 shrink-0',
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border shrink-0 shadow-xs',
                 isFaculty
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
-                  : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20'
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400'
               )}
-              title="Click to switch between Student and Faculty role"
+              title={`Logged in as ${isFaculty ? 'Faculty Member' : 'Student Scholar'}`}
             >
               {isFaculty ? (
                 <>
                   <GraduationCap className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span className="hidden xs:inline">Faculty</span>
+                  <span>Faculty</span>
                 </>
               ) : (
                 <>
                   <User className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                  <span className="hidden xs:inline">Student</span>
+                  <span>Student</span>
                 </>
               )}
-              <span className="text-[10px] text-slate-400 font-normal underline ml-0.5">Switch</span>
-            </button>
+            </div>
           )}
 
           {/* User Profile / Auth State */}
@@ -300,16 +298,7 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
                     </Link>
                   )}
 
-                  <button
-                    onClick={() => {
-                      setProfileDropdownOpen(false);
-                      setRoleModalOpen(true);
-                    }}
-                    className="w-full text-left px-3.5 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center gap-2 font-semibold"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    <span>Switch Role ({isFaculty ? 'Faculty → Student' : 'Student → Faculty'})</span>
-                  </button>
+
 
                   <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
 
@@ -386,28 +375,14 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
             })}
           </div>
 
-          {user && (
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  setRoleModalOpen(true);
-                }}
-                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Switch Role ({isFaculty ? 'Faculty → Student' : 'Student → Faculty'})</span>
-              </button>
-            </div>
-          )}
+
         </div>
       )}
 
-      {/* Role Selection Modal */}
+      {/* Role Selection Modal (Only triggered on initial authentication if needed) */}
       <RoleSelectionModal
-        isOpen={roleModalOpen || needsRoleSelection}
+        isOpen={needsRoleSelection}
         onClose={() => {
-          setRoleModalOpen(false);
           setNeedsRoleSelection(false);
         }}
       />

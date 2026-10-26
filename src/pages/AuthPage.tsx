@@ -73,11 +73,15 @@ export const AuthPage: React.FC = () => {
 
           const btnContainer = document.getElementById('g-signin-button');
           if (btnContainer && btnContainer.childElementCount === 0) {
+            const dynamicWidth = typeof window !== 'undefined'
+              ? Math.min(Math.max(window.innerWidth - 60, 240), 380)
+              : 360;
+
             (window as any).google.accounts.id.renderButton(btnContainer, {
               type: 'standard',
               theme: 'outline',
               size: 'large',
-              width: 380,
+              width: dynamicWidth,
               text: 'continue_with',
               shape: 'pill',
               logo_alignment: 'left',
@@ -201,12 +205,12 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white relative overflow-hidden">
+    <div className="min-h-[100dvh] w-full flex items-center justify-center p-3 sm:p-6 bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white relative overflow-x-hidden overflow-y-auto">
       {/* Background radial gradients */}
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-md w-full rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur-xl relative z-10 space-y-6">
+      <div className="max-w-md w-full rounded-2xl sm:rounded-3xl border border-slate-800 bg-slate-900/95 p-5 sm:p-8 shadow-2xl backdrop-blur-xl relative z-10 space-y-4 sm:space-y-6 my-auto">
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2.5 group">
@@ -278,7 +282,7 @@ export const AuthPage: React.FC = () => {
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isSubmitting}
-              className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-white text-slate-900 hover:bg-slate-100 transition-all flex items-center justify-center gap-2.5 shadow-sm active:scale-95 disabled:opacity-50"
+              className="w-full py-3 px-4 rounded-xl text-sm font-bold bg-white text-slate-900 hover:bg-slate-100 transition-all flex items-center justify-center gap-2.5 shadow-sm active:scale-95 disabled:opacity-50 min-h-[44px]"
             >
               <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
@@ -323,7 +327,7 @@ export const AuthPage: React.FC = () => {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="e.g. Sophia Patel"
-                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                  className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
                   required
                 />
               </div>
@@ -336,7 +340,7 @@ export const AuthPage: React.FC = () => {
                   <select
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                    className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
                   >
                     <option value="Computer Science">Computer Science</option>
                     <option value="Artificial Intelligence">AI & Data Science</option>
@@ -351,7 +355,7 @@ export const AuthPage: React.FC = () => {
                   <select
                     value={yearOfStudy}
                     onChange={(e) => setYearOfStudy(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                    className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
                   >
                     <option value="1st Year">1st Year</option>
                     <option value="2nd Year">2nd Year</option>
@@ -373,7 +377,7 @@ export const AuthPage: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. student@stanford.edu"
-              className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+              className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
               required
             />
           </div>
@@ -388,7 +392,7 @@ export const AuthPage: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full p-2.5 pr-10 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-3 pr-10 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 required
               />
               <button
@@ -405,7 +409,7 @@ export const AuthPage: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2.5 px-4 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition-all flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+            className="w-full py-3 px-4 rounded-xl font-bold text-sm sm:text-base bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 min-h-[46px]"
           >
             <span>{isSubmitting ? 'Processing...' : mode === 'signup' ? 'Complete Registration' : 'Sign In'}</span>
             <ArrowRight className="w-4 h-4" />
@@ -418,7 +422,7 @@ export const AuthPage: React.FC = () => {
             type="button"
             onClick={handleGuestSignIn}
             disabled={isSubmitting}
-            className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-200 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-200 transition-all flex items-center justify-center gap-2 min-h-[44px]"
           >
             <User className="w-4 h-4 text-slate-400" />
             <span>Continue as Guest (No Registration Required)</span>
