@@ -15,6 +15,7 @@ interface AuthContextType {
   setUserRole: (role: 'student' | 'faculty') => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signInWithGoogleCredential: (credential: string) => Promise<{ error: Error | null }>;
+  signInWithGoogleUser: (googleUser: any) => Promise<{ error: Error | null }>;
   signInWithEmail: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUpWithEmail: (
     email: string,
@@ -198,6 +199,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     }
     return signInWithGoogleOAuth();
+  };
+
+  /**
+   * Verified Google User Session Login
+   */
+  const signInWithGoogleUser = async (googleUser: any): Promise<{ error: Error | null }> => {
+    try {
+      return signInWithGoogleUser(googleUser);
+    } catch (err: any) {
+      return { error: err };
+    }
   };
 
   /**
@@ -522,6 +534,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUserRole,
         signInWithGoogle,
         signInWithGoogleCredential,
+        signInWithGoogleUser,
         signInWithEmail,
         signUpWithEmail,
         signInAsGuest,

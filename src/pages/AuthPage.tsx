@@ -22,6 +22,7 @@ export const AuthPage: React.FC = () => {
   const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
   const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
   const [showRoleSelection, setShowRoleSelection] = useState(false);
+  const [gisRendered, setGisRendered] = useState(false);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,6 +36,7 @@ export const AuthPage: React.FC = () => {
   const {
     signInWithGoogle,
     signInWithGoogleCredential,
+    signInWithGoogleUser,
     signInWithEmail,
     signUpWithEmail,
     signInAsGuest,
@@ -50,7 +52,7 @@ export const AuthPage: React.FC = () => {
   useEffect(() => {
     // Initialize Google Identity Services if script is loaded
     function initGIS() {
-      if (typeof window !== 'undefined' && (window as any).google?.accounts?.id) {
+      if (typeof window !== 'undefined' && (window as any).google?.accounts?.id && googleClientId) {
         try {
           (window as any).google.accounts.id.initialize({
             client_id: googleClientId,
@@ -68,7 +70,20 @@ export const AuthPage: React.FC = () => {
               }
             },
           });
-          // Native button rendered via unified Continue with Google button below
+
+          const btnContainer = document.getElementById('g-signin-button');
+          if (btnContainer && btnContainer.childElementCount === 0) {
+            (window as any).google.accounts.id.renderButton(btnContainer, {
+              type: 'standard',
+              theme: 'outline',
+              size: 'large',
+              width: 380,
+              text: 'continue_with',
+              shape: 'pill',
+              logo_alignment: 'left',
+            });
+            setGisRendered(true);
+          }
         } catch (err) {
           console.warn('Google Identity initialization notice:', err);
         }
@@ -76,40 +91,60 @@ export const AuthPage: React.FC = () => {
     }
 
     initGIS();
-    const timer = setTimeout(initGIS, 800);
-    return () => clearTimeout(timer);
+    const timer1 = setTimeout(initGIS, 400);
+    const timer2 = setTimeout(initGIS, 1200);
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
   }, [googleClientId, navigate, signInWithGoogleCredential]);
 
   const handleGoogleSignIn = async () => {
     setIsSubmitting(true);
     setErrorMessage(null);
     try {
-      if (typeof window !== 'undefined' && (window as any).google?.accounts?.id && googleClientId) {
-        let promptHandled = false;
-        try {
-          (window as any).google.accounts.id.prompt((notification: any) => {
-            promptHandled = true;
-            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-              signInWithGoogle().then(({ error }) => {
-                if (error) setErrorMessage(error.message);
-              });
+      // 1. Google OAuth2 Token Client Popup (works directly in browser, never redirects to broken Supabase URL)
+      if (typeof window !== 'undefined' && (window as any).google?.accounts?.oauth2 && googleClientId) {
+        const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
+          client_id: googleClientId,
+          scope: 'openid email profile',
+          callback: async (tokenResponse: any) => {
+            if (tokenResponse?.access_token) {
+              try {
+                const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                  headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+                });
+                const googleUser = await res.json();
+                const { error } = await signInWithGoogleUser(googleUser);
+                if (error) {
+                  setErrorMessage(error.message);
+                } else {
+                  setShowRoleSelection(true);
+                }
+              } catch (err: any) {
+                setErrorMessage(err.message || 'Failed to authenticate Google account.');
+              } finally {
+                setIsSubmitting(false);
+              }
+            } else {
+              setIsSubmitting(false);
             }
-          });
-        } catch {
-          // fallback to Supabase
-        }
-        if (promptHandled) {
-          setIsSubmitting(false);
-          return;
-        }
+          },
+        });
+        tokenClient.requestAccessToken();
+        return;
       }
 
-      const { error } = await signInWithGoogle();
-      if (error) {
-        setErrorMessage(error.message);
+      // 2. Fallback to GIS prompt if available
+      if (typeof window !== 'undefined' && (window as any).google?.accounts?.id && googleClientId) {
+        (window as any).google.accounts.id.prompt();
+        setIsSubmitting(false);
+        return;
       }
+
+      setErrorMessage('Google Sign-In is initializing. Please try again in 1 second.');
     } catch (err: any) {
-      setErrorMessage(err.message || 'Google OAuth failed to initiate.');
+      setErrorMessage(err.message || 'Google Sign-In failed to start.');
     } finally {
       setIsSubmitting(false);
     }
@@ -227,33 +262,46 @@ export const AuthPage: React.FC = () => {
 
 
 
-        {/* Primary Action: Continue with Google OAuth */}
-        <button
-          onClick={handleGoogleSignIn}
-          disabled={isSubmitting}
-          className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-white text-slate-900 hover:bg-slate-100 transition-all flex items-center justify-center gap-2.5 shadow-sm active:scale-95 disabled:opacity-50"
-        >
-          {/* Google Official SVG Mark */}
-          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-            <path
-              fill="#4285F4"
-              d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.15z"
-            />
-            <path
-              fill="#34A853"
-              d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"
-            />
-            <path
-              fill="#FBBC05"
-              d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"
-            />
-            <path
-              fill="#EA4335"
-              d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-            />
-          </svg>
-          <span>Continue with Google</span>
-        </button>
+        {/* Single Unified Google Sign-In Bar (Working GIS / Pop-up) */}
+        <div className="w-full flex justify-center items-center min-h-[44px]">
+          {/* Official Google button: directly opens Google popup and signs in */}
+          <div
+            id="g-signin-button"
+            className={`w-full flex justify-center [&>div]:w-full [&>div>iframe]:!w-full [&>div>iframe]:!max-w-full ${
+              gisRendered ? 'block' : 'hidden'
+            }`}
+          />
+
+          {/* Fallback button: displayed only while Google iframe is finishing initialization */}
+          {!gisRendered && (
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={isSubmitting}
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-white text-slate-900 hover:bg-slate-100 transition-all flex items-center justify-center gap-2.5 shadow-sm active:scale-95 disabled:opacity-50"
+            >
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.15z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                />
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+          )}
+        </div>
 
         {/* Divider */}
         <div className="flex items-center gap-3 text-xs text-slate-500">
