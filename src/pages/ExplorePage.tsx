@@ -212,7 +212,7 @@ export const ExplorePage: React.FC = () => {
 
         <Link
           to="/ask"
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/25 transition-all"
+          className="flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white shadow-md shadow-indigo-600/30 transition-all hover:-translate-y-0.5 active:scale-95"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Ask New Doubt</span>
@@ -220,7 +220,7 @@ export const ExplorePage: React.FC = () => {
       </div>
 
       {/* Search & Filter Controls Card */}
-      <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 p-4 sm:p-5 shadow-2xs space-y-4">
+      <div className="rounded-2xl border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm space-y-4">
         {/* Main Search Input */}
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -229,7 +229,7 @@ export const ExplorePage: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search keywords, formulas, algorithms (e.g. Dijkstra, Cross-Entropy, MVCC)..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
+            className="w-full pl-10 pr-4 py-3 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-400 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 transition-colors"
           />
           {searchQuery && (
             <button

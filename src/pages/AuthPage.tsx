@@ -207,10 +207,10 @@ export const AuthPage: React.FC = () => {
   return (
     <div className="min-h-[100dvh] w-full flex items-center justify-center p-3 sm:p-6 bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white relative overflow-x-hidden overflow-y-auto">
       {/* Background radial gradients */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-violet-600/15 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-md w-full rounded-2xl sm:rounded-3xl border border-slate-800 bg-slate-900/95 p-5 sm:p-8 shadow-2xl backdrop-blur-xl relative z-10 space-y-4 sm:space-y-6 my-auto">
+      <div className="max-w-md w-full rounded-2xl sm:rounded-3xl border border-slate-700/60 bg-slate-900/98 p-5 sm:p-8 shadow-2xl shadow-slate-950 backdrop-blur-xl relative z-10 space-y-4 sm:space-y-6 my-auto ring-1 ring-white/5">
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2.5 group">
@@ -409,7 +409,7 @@ export const AuthPage: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3 px-4 rounded-xl font-bold text-sm sm:text-base bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 min-h-[46px]"
+            className="w-full py-3.5 px-4 rounded-xl font-bold text-sm sm:text-base bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-600/35 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 min-h-[48px] hover:-translate-y-0.5"
           >
             <span>{isSubmitting ? 'Processing...' : mode === 'signup' ? 'Complete Registration' : 'Sign In'}</span>
             <ArrowRight className="w-4 h-4" />
@@ -422,7 +422,7 @@ export const AuthPage: React.FC = () => {
             type="button"
             onClick={handleGuestSignIn}
             disabled={isSubmitting}
-            className="w-full py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-200 transition-all flex items-center justify-center gap-2 min-h-[44px]"
+            className="w-full py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm border border-slate-700/80 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 transition-all flex items-center justify-center gap-2 min-h-[44px] hover:-translate-y-0.5 active:scale-95"
           >
             <User className="w-4 h-4 text-slate-400" />
             <span>Continue as Guest (No Registration Required)</span>

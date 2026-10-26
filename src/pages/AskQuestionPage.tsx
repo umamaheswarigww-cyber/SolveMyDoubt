@@ -160,10 +160,10 @@ export const AskQuestionPage: React.FC = () => {
     <div className="w-full max-w-4xl mx-auto space-y-6 min-w-0 pb-16">
       {/* Header */}
       <div className="space-y-1.5">
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
           Ask a Doubt
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400">
           Get verified explanations from peers and certified faculty professors.
         </p>
       </div>
@@ -178,7 +178,7 @@ export const AskQuestionPage: React.FC = () => {
         )}
 
         {/* 1. Doubt Title Field */}
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 p-5 sm:p-6 shadow-sm space-y-2.5 min-w-0">
+        <div className="rounded-2xl border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-md shadow-slate-200/40 dark:shadow-slate-950/40 space-y-2.5 min-w-0 hover:border-indigo-300/50 dark:hover:border-indigo-700/50 transition-colors">
           <label className="block text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
             Doubt Title <span className="text-rose-500">*</span>
           </label>
@@ -191,7 +191,7 @@ export const AskQuestionPage: React.FC = () => {
               if (errorMessage) setErrorMessage(null);
             }}
             placeholder="e.g. Why does cross-entropy penalize confident wrong predictions?"
-            className="w-full px-4 py-3.5 rounded-xl text-sm sm:text-base bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100 font-medium placeholder:text-slate-400 min-w-0 box-border"
+            className="w-full px-4 py-4 rounded-xl text-sm sm:text-base bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-400 dark:focus:border-indigo-600 text-slate-900 dark:text-slate-100 font-medium placeholder:text-slate-400 min-w-0 box-border transition-colors"
           />
 
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug">
@@ -200,7 +200,7 @@ export const AskQuestionPage: React.FC = () => {
         </div>
 
         {/* 2. Explain your doubt (Clean Free Box - No Math/Code clutter, No preview toggle) */}
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 p-5 sm:p-6 shadow-sm space-y-3 min-w-0">
+        <div className="rounded-2xl border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-md shadow-slate-200/40 dark:shadow-slate-950/40 space-y-3 min-w-0 hover:border-indigo-300/50 dark:hover:border-indigo-700/50 transition-colors">
           <label className="block text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
             Explain your doubt <span className="text-rose-500">*</span>
           </label>
@@ -214,7 +214,7 @@ export const AskQuestionPage: React.FC = () => {
             }}
             rows={10}
             placeholder="Explain your doubt here freely. Write any details, questions, formulas, or code you want to ask..."
-            className="w-full p-4 rounded-xl text-sm sm:text-base font-sans bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100 leading-relaxed placeholder:text-slate-400 min-h-[220px] box-border"
+            className="w-full p-4 rounded-xl text-sm sm:text-base font-sans bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-400 dark:focus:border-indigo-600 text-slate-900 dark:text-slate-100 leading-relaxed placeholder:text-slate-400 min-h-[240px] box-border resize-y transition-colors"
           />
         </div>
 
@@ -301,7 +301,7 @@ export const AskQuestionPage: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center gap-2.5 px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-bold text-sm sm:text-base bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-700 text-white hover:from-indigo-500 hover:to-indigo-600 shadow-md shadow-indigo-600/30 transition-all active:scale-95 disabled:opacity-50"
+            className="flex items-center gap-2.5 px-8 sm:px-10 py-3.5 sm:py-4 rounded-xl font-bold text-sm sm:text-base bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 text-white hover:from-indigo-500 hover:via-indigo-400 hover:to-purple-500 shadow-lg shadow-indigo-600/35 hover:shadow-xl hover:shadow-indigo-500/40 transition-all active:scale-95 disabled:opacity-50 hover:-translate-y-0.5"
           >
             <span>{isSubmitting ? 'Publishing Doubt...' : 'Publish Doubt'}</span>
             <ArrowRight className="w-4 h-4" />
@@ -309,7 +309,7 @@ export const AskQuestionPage: React.FC = () => {
         </div>
 
         {/* DoubtsHub Escalation Guarantee */}
-        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 p-4 sm:p-5 space-y-1.5 text-xs sm:text-sm shadow-xs">
+        <div className="rounded-2xl border border-emerald-200/50 dark:border-emerald-900/40 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 sm:p-5 space-y-1.5 text-xs sm:text-sm shadow-xs">
           <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
             <span>DoubtsHub Escalation Guarantee</span>

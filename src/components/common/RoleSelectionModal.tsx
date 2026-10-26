@@ -68,7 +68,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
               Select Your Academic Role
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-lg mx-auto">
-              Choose your profile mode. You can switch roles anytime from the top navigation bar.
+              Choose your profile mode for this session. To switch roles later, simply sign out and sign back in.
             </p>
           </div>
 

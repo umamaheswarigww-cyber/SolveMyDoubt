@@ -80,12 +80,12 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md transition-colors">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-3 min-w-0">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200/60 dark:border-slate-800/60 bg-white/98 dark:bg-slate-950/98 backdrop-blur-lg shadow-sm shadow-slate-200/50 dark:shadow-slate-950/50 transition-colors">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-[66px] flex items-center justify-between gap-2 sm:gap-3 min-w-0">
         {/* Left: Brand Logo & Wordmark */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform shrink-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-500 to-cyan-400 p-0.5 shadow-md shadow-indigo-500/20 group-hover:scale-105 group-hover:shadow-indigo-500/40 transition-all shrink-0">
               <div className="w-full h-full bg-slate-950 rounded-[9px] flex items-center justify-center">
                 <svg
                   className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400 group-hover:text-cyan-300 transition-colors"
@@ -175,7 +175,7 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
           {/* Ask a Doubt CTA */}
           <Link
             to="/ask"
-            className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs font-bold text-white rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 shadow-sm shadow-indigo-500/25 active:scale-95 transition-all shrink-0 whitespace-nowrap"
+            className="flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-white rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-md shadow-indigo-500/30 active:scale-95 hover:-translate-y-0.5 transition-all shrink-0 whitespace-nowrap"
           >
             <PlusCircle className="w-3.5 h-3.5 shrink-0" />
             <span className="hidden sm:inline">Ask a Doubt</span>
@@ -191,11 +191,11 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
             {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          {/* Verified Session Role Badge (Locked for active session) */}
+          {/* Verified Session Role Badge (Locked for active session, hidden on mobile to avoid header crowding) */}
           {user && (
             <div
               className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border shrink-0 shadow-xs',
+                'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border shrink-0 shadow-xs',
                 isFaculty
                   ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
                   : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400'
@@ -366,7 +366,7 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
                   key={link.href}
                   to={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 text-slate-700 dark:text-slate-300"
+                  className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:border-indigo-200/60 dark:hover:border-indigo-800/60 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
                 >
                   <Icon className={cn('w-4 h-4 shrink-0', link.highlight && 'text-rose-500')} />
                   <span className="truncate">{link.label}</span>
