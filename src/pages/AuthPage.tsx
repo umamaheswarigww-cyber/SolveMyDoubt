@@ -401,9 +401,11 @@ export const AuthPage: React.FC = () => {
       <RoleSelectionModal
         isOpen={showRoleSelection}
         onSuccess={(role) => {
+          setShowRoleSelection(false);
           navigate(role === 'faculty' ? '/explore' : '/dashboard');
         }}
         onClose={() => {
+          setShowRoleSelection(false);
           navigate('/dashboard');
         }}
       />

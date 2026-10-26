@@ -117,24 +117,24 @@ export const LandingPage: React.FC = () => {
         </p>
 
         {/* Action CTAs */}
-        <div className="mt-10 flex items-center justify-center gap-4 flex-wrap">
+        <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-sm sm:max-w-none mx-auto w-full px-2">
           <Link
             to="/dashboard"
-            className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 text-white hover:from-indigo-500 hover:to-cyan-400 shadow-lg shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 text-white hover:from-indigo-500 hover:to-cyan-400 shadow-lg shadow-indigo-600/30 active:scale-95 transition-all"
           >
             <span>Start Learning</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
           <Link
             to="/explore"
-            className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm bg-slate-900/90 text-slate-200 hover:text-white hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm bg-slate-900/90 text-slate-200 hover:text-white hover:bg-slate-800 border border-slate-800 hover:border-slate-700 active:scale-95 transition-all"
           >
             <Compass className="w-4 h-4 text-slate-400" />
             <span>Explore Doubts</span>
           </Link>
           <button
             onClick={handleGuestEntry}
-            className="flex items-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 transition-all border border-transparent hover:border-slate-800"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 transition-all border border-transparent hover:border-slate-800 active:scale-95"
           >
             <span>Continue as Guest</span>
           </button>

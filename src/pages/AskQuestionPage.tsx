@@ -193,7 +193,7 @@ export const AskQuestionPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-full min-w-0 py-6 px-1 sm:px-2 space-y-6">
+    <div className="w-full max-w-full min-w-0 space-y-6">
       {/* Header */}
       <div className="space-y-1">
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
