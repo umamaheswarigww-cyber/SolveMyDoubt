@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DoubtsHub — Full Architecture & System Specification</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --accent: #6366f1;
+      --accent-light: #818cf8;
+      --accent-gradient: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --text-sub: #6b7280;
+      --emerald: #10b981;
+      --rose: #f43f5e;
+      --amber: #f59e0b;
+      --code-bg: #030712;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Hero Header */
+    .hero {
+      text-align: center;
+      padding: 3.5rem 1.5rem;
+      background: radial-gradient(circle at 50% 20%, rgba(99, 102, 241, 0.15), transparent 70%);
+      border-radius: 24px;
+      border: 1px solid var(--card-border);
+      margin-bottom: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+
+    .badge-indigo {
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--accent-light);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .badge-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-rose {
+      background: rgba(244, 63, 94, 0.15);
+      color: var(--rose);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* Sections */
+    section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.75rem;
+      color: #fff;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 1.5rem 0 0.75rem;
+      color: var(--accent-light);
+    }
+
+    p {
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    /* Cards Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin: 1.25rem 0;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #fff;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Architecture Visual Diagram */
+    .diagram-container {
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+    }
+
+    .diagram-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      min-width: 650px;
+    }
+
+    .layer {
+      border: 1px dashed rgba(99, 102, 241, 0.4);
+      border-radius: 12px;
+      padding: 1rem;
+      background: rgba(99, 102, 241, 0.03);
+    }
+
+    .layer-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-light);
+      margin-bottom: 0.75rem;
+    }
+
+    .nodes-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .node {
+      flex: 1;
+      min-width: 140px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.75rem;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .node.active {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.12);
+      color: #fff;
+    }
+
+    .node.emerald {
+      border-color: var(--emerald);
+      background: rgba(16, 185, 129, 0.12);
+      color: #fff;
+    }
+
+    .node.rose {
+      border-color: var(--rose);
+      background: rgba(244, 63, 94, 0.12);
+      color: #fff;
+    }
+
+    .arrow-down {
+      text-align: center;
+      color: var(--accent-light);
+      font-size: 1.2rem;
+      margin: -0.5rem 0;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.25rem 0;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    td {
+      color: var(--text-muted);
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #e5e7eb;
+    }
+
+    /* Lists */
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    li strong {
+      color: #f3f4f6;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem 0;
+      color: var(--text-sub);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--card-border);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header class="hero">
+    <div class="badge badge-indigo">Academic Collaboration Engine</div>
+    <h1>DoubtsHub (SolveMyDoubt)</h1>
+    <p class="subtitle">
+      A peer-to-peer and faculty-verified academic doubt resolution ecosystem designed with zero-doubt escalation guarantees, realtime synchronization, and dual-responsive PC & mobile architectures.
+    </p>
+  </header>
+
+  <!-- Section 1: Executive Summary & Core Mission -->
+  <section id="overview">
+    <h2>1. Platform Overview & Core Mission</h2>
+    <p>
+      <strong>DoubtsHub</strong> (formerly <em>SolveMyDoubt</em>) is an educational peer network built to bridge the gap between student confusion and timely, faculty-validated academic mastery.
+    </p>
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">🎯 Frictionless Inquiry</div>
+        <p>Students post doubts with free-form explanations, handwritten diagrams, code snippets, or formulas without complex configuration barriers.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">⏳ 12-Hour Escalation Radar</div>
+        <p>Unanswered doubts automatically escalate through urgency tiers (+15 reputation bounties) before alerting department faculty triage desks.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🏛️ Faculty Verification & Governance</div>
+        <p>Professors officially stamp solutions with the "Faculty Verified" badge and have moderation rights to immediately purge improper or abusive posts.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">📱 Dual Responsive Design</div>
+        <p>Custom mobile bottom navigation and Instagram-style threaded bottom sheets on smartphones; full dual-sidebar command view on desktop PCs.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Technology Stack -->
+  <section id="tech-stack">
+    <h2>2. Complete Technology Stack</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th>Technology</th>
+          <th>Version / Specs</th>
+          <th>Purpose & Key Features</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Frontend Core</strong></td>
+          <td>React + TypeScript</td>
+          <td>React 18.3+, TS 5.6+</td>
+          <td>Type-safe component rendering, strict interfaces, hooks state management</td>
+        </tr>
+        <tr>
+          <td><strong>Build Tool & Bundler</strong></td>
+          <td>Vite</td>
+          <td>Vite 6.x</td>
+          <td>Lightning-fast ESM HMR (Hot Module Replacement) and optimized production chunks</td>
+        </tr>
+        <tr>
+          <td><strong>Styling & CSS</strong></td>
+          <td>Tailwind CSS</td>
+          <td>Tailwind v4</td>
+          <td>Utility-first CSS styling, native dark mode variant, dynamic viewport units (<code>100dvh</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>Routing</strong></td>
+          <td>React Router DOM</td>
+          <td>v6.28+</td>
+          <td>Single Page App client-side routing, protected routes, deep-link share URLs</td>
+        </tr>
+        <tr>
+          <td><strong>Icons System</strong></td>
+          <td>Lucide React</td>
+          <td>v0.460+</td>
+          <td>Lightweight, scalable vector icons with consistent line-weights</td>
+        </tr>
+        <tr>
+          <td><strong>Backend & Database</strong></td>
+          <td>Supabase</td>
+          <td>PostgreSQL 15+</td>
+          <td>Worldwide relational database, Row Level Security (RLS), stored RPC functions</td>
+        </tr>
+        <tr>
+          <td><strong>Realtime Sync</strong></td>
+          <td>Supabase Realtime</td>
+          <td>WebSockets / Broadcast</td>
+          <td>Live doubt broadcast toasts across connected browser sessions without page refresh</td>
+        </tr>
+        <tr>
+          <td><strong>Authentication</strong></td>
+          <td>Google Identity Services (GIS) + Supabase Auth</td>
+          <td>OAuth2 Token Client</td>
+          <td>Instant Google One-Tap / popup login, persistent JWT sessions, guest explore mode</td>
+        </tr>
+        <tr>
+          <td><strong>Math & Code Rendering</strong></td>
+          <td>KaTeX + Prism.js</td>
+          <td>KaTeX 0.16+</td>
+          <td>LaTeX formulas ($f(x)=x^2$) and multi-language syntax highlighting in explanations</td>
+        </tr>
+        <tr>
+          <td><strong>Media & Canvas</strong></td>
+          <td>HTML5 Canvas API</td>
+          <td>Custom In-Browser Engine</td>
+          <td>Freehand pen, arrow markers, bounding boxes, text labels, undo, image download</td>
+        </tr>
+        <tr>
+          <td><strong>Gamification</strong></td>
+          <td>Canvas Confetti</td>
+          <td>v1.9+</td>
+          <td>Celebratory particle bursts when accepting verified peer solutions</td>
+        </tr>
+        <tr>
+          <td><strong>Hosting & Edge</strong></td>
+          <td>Vercel</td>
+          <td>Edge CDN + SPA Rewrites</td>
+          <td>Automatic CI/CD deployment, global static edge caching, <code>vercel.json</code> rewrites</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Section 3: System Architecture Diagram -->
+  <section id="architecture">
+    <h2>3. System Architecture & Flow</h2>
+    <p>
+      The following diagram illustrates how clients communicate with the frontend layer, state controllers, the API abstraction layer, and the Supabase cloud infrastructure:
+    </p>
+
+    <div class="diagram-container">
+      <div class="diagram-flow">
+        
+        <!-- Client Layer -->
+        <div class="layer">
+          <div class="layer-title">Layer 1: Client Devices & Viewports</div>
+          <div class="nodes-row">
+            <div class="node active">Desktop Browser (PC / Mac)<br><small>Two Sidebars, Grid View, Ctrl+K</small></div>
+            <div class="node active">Mobile Devices (iOS / Android)<br><small>Bottom Nav, 100dvh Sheet, Touch-First</small></div>
+          </div>
+        </div>
+
+        <div class="arrow-down">▼</div>
+
+        <!-- UI & Components -->
+        <div class="layer">
+          <div class="layer-title">Layer 2: React Component Hierarchy</div>
+          <div class="nodes-row">
+            <div class="node">Navbar & Top Search</div>
+            <div class="node">Dashboard & Radar</div>
+            <div class="node">Ask Doubt Form</div>
+            <div class="node">Instagram Comment Modal</div>
+            <div class="node">Image Annotator Modal</div>
+          </div>
+        </div>
+
+        <div class="arrow-down">▼</div>
+
+        <!-- Context & State -->
+        <div class="layer">
+          <div class="layer-title">Layer 3: Client State & Business Context</div>
+          <div class="nodes-row">
+            <div class="node">AuthContext<br><small>Session, Locked Role (Student / Faculty)</small></div>
+            <div class="node">LocalStorage Cache<br><small>Offline Drafts, Dark Theme</small></div>
+            <div class="node">Realtime Listener<br><small>Live Doubt Broadcasts</small></div>
+          </div>
+        </div>
+
+        <div class="arrow-down">▼</div>
+
+        <!-- API Abstraction -->
+        <div class="layer">
+          <div class="layer-title">Layer 4: Data Access & API Layer (<code>src/lib/api.ts</code>)</div>
+          <div class="nodes-row">
+            <div class="node">getQuestions / createQuestion</div>
+            <div class="node">castVote (Optimistic UI)</div>
+            <div class="node emerald">facultyVerifyAnswer</div>
+            <div class="node rose">deleteQuestion (Faculty Moderation)</div>
+          </div>
+        </div>
+
+        <div class="arrow-down">▼</div>
+
+        <!-- Backend Cloud -->
+        <div class="layer">
+          <div class="layer-title">Layer 5: Supabase Cloud & PostgreSQL Database</div>
+          <div class="nodes-row">
+            <div class="node">PostgreSQL Tables<br><small>profiles, questions, answers, votes</small></div>
+            <div class="node">Row Level Security<br><small>Role validation & Author isolation</small></div>
+            <div class="node">Google OAuth2 Provider<br><small>Token Validation & Profile Sync</small></div>
+            <div class="node">WebSocket Channels<br><small>Realtime broadcast publication</small></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: How It Works & Core Workflows -->
+  <section id="workflows">
+    <h2>4. How It Works (Core Workflows)</h2>
+
+    <h3>A. The Lifecycle of an Academic Doubt</h3>
+    <ol>
+      <li>
+        <strong>Drafting & Asking:</strong> A student opens the simplified <em>Ask a Doubt</em> page. They type a title, describe the issue freely, and optionally attach a photo or handwritten formula diagram. Autosave preserves their text locally in case of page refresh.
+      </li>
+      <li>
+        <strong>Live Publication:</strong> Once submitted, the question is stored in the PostgreSQL database and immediately broadcast over Supabase Realtime channels. Other active users see a live notification toast without refreshing.
+      </li>
+      <li>
+        <strong>Community Discussion:</strong> Learners click on any doubt card to open the Instagram-style threaded comment window. Anyone can post step-by-step explanations, code snippets, or annotated solution images.
+      </li>
+      <li>
+        <strong>Voting & Best Solution:</strong> Peers upvote helpful explanations. The original asker can mark a solution as <em>Accepted</em>, triggering a congratulatory confetti animation and awarding reputation points to the contributor.
+      </li>
+    </ol>
+
+    <h3>B. Zero Doubts Left Behind (Rescue Escalation Radar)</h3>
+    <p>
+      Unlike traditional forums where hard questions get ignored, DoubtsHub features an automatic escalation radar:
+    </p>
+    <ul>
+      <li><strong>0 to 4 Hours:</strong> Question sits in standard student peer recommended feed.</li>
+      <li><strong>4 to 12 Hours:</strong> If unanswered, the question is flagged with the <strong>Fast Clarification</strong> badge and routed to the <em>Rescue Queue</em> with a <code>+15 Reputation Bounty</code> to incentivize peer solvers.</li>
+      <li><strong>12+ Hours:</strong> The question escalates directly into the <strong>Faculty Review Queue</strong> for professor triage.</li>
+    </ul>
+
+    <h3>C. Faculty Desk, Verification & Moderation</h3>
+    <ul>
+      <li>
+        <strong>Role Lock on Sign-In:</strong> Upon authenticating, users choose whether to enter as a <em>Student Learner</em> or <em>Faculty Educator</em>. The role remains strictly locked during their active session to prevent fraudulent role tampering.
+      </li>
+      <li>
+        <strong>Official Answer Verification:</strong> Faculty members have a dedicated review panel where they can attach a verified seal (<code>ShieldCheck</code> badge) and official feedback notes to mathematically sound answers.
+      </li>
+      <li>
+        <strong>Abuse Purge & Question Deletion:</strong> Faculty members possess unilateral moderation authority. Clicking the trash icon on any doubt opens a confirmation dialog that deletes improper or abusive doubts and their answers immediately.
+      </li>
+    </ul>
+
+    <h3>D. Client-Side Image Annotation & Download Pipeline</h3>
+    <p>
+      Every posted image or diagram includes an interactive overlay:
+    </p>
+    <ul>
+      <li><strong>Download:</strong> Allows any learner or professor to save diagrams directly with one click.</li>
+      <li><strong>Annotate:</strong> Launches a canvas modal equipped with a freehand pen, arrow pointers, highlight rectangles, text input, custom color palette, and undo history. Users can annotate diagrams directly in the browser and re-attach them to explanations.
+      </li>
+    </ul>
+  </section>
+
+  <!-- Section 5: Database Schema Design -->
+  <section id="database">
+    <h2>5. Database Schema (PostgreSQL Tables)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Table Name</th>
+          <th>Primary Key</th>
+          <th>Key Columns</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>profiles</code></td>
+          <td><code>id (UUID)</code></td>
+          <td>display_name, email, role, department, reputation, avatar_url</td>
+          <td>User identity, verified session roles (student/faculty), reputation streaks</td>
+        </tr>
+        <tr>
+          <td><code>courses</code></td>
+          <td><code>id (UUID)</code></td>
+          <td>name, course_code, department, color, slug</td>
+          <td>Academic subjects (CS101, Linear Algebra, AI & Machine Learning)</td>
+        </tr>
+        <tr>
+          <td><code>tags</code></td>
+          <td><code>id (UUID)</code></td>
+          <td>name, slug, course_id</td>
+          <td>Conceptual keywords (#cross-entropy, #dijkstra, #backpropagation)</td>
+        </tr>
+        <tr>
+          <td><code>questions</code></td>
+          <td><code>id (UUID)</code></td>
+          <td>title, body, difficulty, status, rescue_priority, is_escalated, score, view_count, author_id</td>
+          <td>Main doubts posted by students, tracking escalation states and vote counts</td>
+        </tr>
+        <tr>
+          <td><code>answers</code></td>
+          <td><code>id (UUID)</code></td>
+          <td>question_id, author_id, body, is_accepted, verified_by, faculty_feedback, score</td>
+          <td>Threaded responses and explanations, accepted solution flags, faculty verification notes</td>
+        </tr>
+        <tr>
+          <td><code>votes</code></td>
+          <td><code>id (UUID)</code></td>
+          <td>user_id, item_type, item_id, direction (+1 / -1)</td>
+          <td>Idempotent voting audit trail preventing duplicate votes from single users</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Section 6: Mobile vs Desktop Responsiveness -->
+  <section id="responsiveness">
+    <h2>6. Mobile-First vs. PC Desktop Architecture</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">🖥️ PC Desktop Experience</div>
+        <ul>
+          <li><strong>Persistent Left Sidebar:</strong> Instant navigation to Workspace, Rescue Queue, Library, and Leaderboard.</li>
+          <li><strong>Right Sidebar Widget:</strong> Realtime rescue metrics, active course filters, and community leaderboard.</li>
+          <li><strong>Wide Header:</strong> Full search bar with <code>Ctrl+K</code> shortcut listener and role badge.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">📱 Mobile Smartphone Experience</div>
+        <ul>
+          <li><strong>Sticky Bottom Navigation:</strong> Elevated "+ Ask" center action, Home, Explore, Rescue, and Saved shortcuts.</li>
+          <li><strong>100dvh Dynamic Viewport:</strong> Full-screen modal sheets that never get blocked by mobile browser navigation bars.</li>
+          <li><strong>Clean Header:</strong> Role badges tucked neatly inside dropdown to maximize brand and search bar touch space.</li>
+          <li><strong>Horizontal Scroll Tabs:</strong> Course and feed filter pills swipe smoothly with zero overflow clipping.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>DoubtsHub (SolveMyDoubt) — Academic Collaboration System Specification & Architecture Document</p>
+    <p>Repository: <code>umamaheswarigww-cyber/SolveMyDoubt</code> • Target Deployment: <strong>Vercel (DoubtsHub)</strong></p>
+  </footer>
+
+</div>
+
+</body>
+</html>
