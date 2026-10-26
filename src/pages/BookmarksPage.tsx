@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Bookmark, Sparkles, PlusCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -11,6 +11,29 @@ export const BookmarksPage: React.FC = () => {
   const { isGuest } = useAuth();
   const [questions, setQuestions] = useState<Question[]>(INITIAL_QUESTIONS.slice(0, 3));
   const [activeModalQuestion, setActiveModalQuestion] = useState<Question | null>(null);
+
+  useEffect(() => {
+    const handleDeletedEvent = (e: any) => {
+      const qId = e.detail?.questionId;
+      if (qId) {
+        setQuestions((prev) => prev.filter((q) => q.id !== qId));
+        if (activeModalQuestion?.id === qId) {
+          setActiveModalQuestion(null);
+        }
+      }
+    };
+    window.addEventListener('doubt_deleted', handleDeletedEvent);
+    return () => {
+      window.removeEventListener('doubt_deleted', handleDeletedEvent);
+    };
+  }, [activeModalQuestion]);
+
+  const removeQuestion = (id: string) => {
+    setQuestions((prev) => prev.filter((q) => q.id !== id));
+    if (activeModalQuestion?.id === id) {
+      setActiveModalQuestion(null);
+    }
+  };
 
   if (isGuest) {
     return (
@@ -35,9 +58,9 @@ export const BookmarksPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="w-full space-y-6 min-w-0">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
           Saved Doubts & Formula Notes
         </h1>
         <p className="mt-1 text-xs text-slate-500">
@@ -46,21 +69,34 @@ export const BookmarksPage: React.FC = () => {
       </div>
 
       <div className="space-y-4">
-        {questions.map((q) => (
-          <DoubtCard
-            key={q.id}
-            question={q}
-            isBookmarked={true}
-            onOpenComments={(selected) => setActiveModalQuestion(selected)}
-            onVote={(qId, dir) => {
-              setQuestions((prev) =>
-                prev.map((item) =>
-                  item.id === qId ? { ...item, score: item.score + dir } : item
-                )
-              );
-            }}
-          />
-        ))}
+        {questions.length > 0 ? (
+          questions.map((q) => (
+            <DoubtCard
+              key={q.id}
+              question={q}
+              isBookmarked={true}
+              onOpenComments={(selected) => setActiveModalQuestion(selected)}
+              onDelete={removeQuestion}
+              onVote={(qId, dir) => {
+                setQuestions((prev) =>
+                  prev.map((item) =>
+                    item.id === qId ? { ...item, score: item.score + dir } : item
+                  )
+                );
+              }}
+            />
+          ))
+        ) : (
+          <div className="p-12 text-center rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 space-y-3">
+            <Bookmark className="w-8 h-8 text-slate-400 mx-auto" />
+            <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200">
+              No bookmarks saved yet
+            </h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              Click the bookmark icon on any doubt in Explore or Home to save it for quick review.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Reddit/Instagram-Style Comments & Explanations Popup Window */}
@@ -68,6 +104,7 @@ export const BookmarksPage: React.FC = () => {
         isOpen={Boolean(activeModalQuestion)}
         question={activeModalQuestion}
         onClose={() => setActiveModalQuestion(null)}
+        onQuestionDeleted={removeQuestion}
         onQuestionVoteUpdate={(qId, newScore) => {
           setQuestions((prev) =>
             prev.map((q) => (q.id === qId ? { ...q, score: newScore } : q))

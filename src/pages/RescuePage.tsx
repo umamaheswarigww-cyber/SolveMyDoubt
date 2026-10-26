@@ -53,10 +53,30 @@ export const RescuePage: React.FC = () => {
       }
     }
     loadRescueData();
+    const handleDeletedEvent = (e: any) => {
+      const qId = e.detail?.questionId;
+      if (qId && mounted) {
+        setQuestions((prev) => prev.filter((q) => q.id !== qId));
+        if (activeModalQuestion?.id === qId) {
+          setActiveModalQuestion(null);
+        }
+      }
+    };
+    window.addEventListener('doubt_deleted', handleDeletedEvent);
+
     return () => {
       mounted = false;
+      window.removeEventListener('doubt_deleted', handleDeletedEvent);
     };
   }, []);
+
+
+  const removeQuestion = (id: string) => {
+    setQuestions((prev) => prev.filter((q) => q.id !== id));
+    if (activeModalQuestion?.id === id) {
+      setActiveModalQuestion(null);
+    }
+  };
 
   // Filter for unanswered doubts
   const unansweredDoubts = useMemo(() => {
@@ -95,7 +115,7 @@ export const RescuePage: React.FC = () => {
   }, [questions, urgencyFilter, selectedCourseId]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="w-full space-y-6 sm:space-y-8 min-w-0">
       {/* Signature Rescue Hero Banner */}
       <div className="relative rounded-3xl border border-rose-500/40 bg-gradient-to-br from-rose-950/40 via-slate-900/90 to-slate-950 p-6 sm:p-10 shadow-xl overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />

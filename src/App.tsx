@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/common/Navbar';
 import { Sidebar } from './components/common/Sidebar';
 import { Footer } from './components/common/Footer';
+import { MobileBottomNav } from './components/common/MobileBottomNav';
 import { LandingPage } from './pages/LandingPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ExplorePage } from './pages/ExplorePage';
@@ -41,15 +42,15 @@ const AppLayout: React.FC<{ darkMode: boolean; setDarkMode: (v: boolean) => void
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200 overflow-x-hidden">
       <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
 
-      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex gap-8 items-start">
-        {/* Persistent Left Sidebar */}
+      <div className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex gap-6 lg:gap-8 items-start pb-24 md:pb-6 min-w-0">
+        {/* Persistent Left Sidebar on Desktop */}
         <Sidebar />
 
         {/* Central Dynamic Page View */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 w-full">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
@@ -69,6 +70,7 @@ const AppLayout: React.FC<{ darkMode: boolean; setDarkMode: (v: boolean) => void
       </div>
 
       <Footer />
+      <MobileBottomNav />
     </div>
   );
 };
@@ -103,5 +105,6 @@ export function App() {
     </BrowserRouter>
   );
 }
+
 
 export default App;

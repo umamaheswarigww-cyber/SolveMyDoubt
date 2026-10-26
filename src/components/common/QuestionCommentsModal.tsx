@@ -14,13 +14,14 @@ import {
   Eye,
   Share2,
   Image as ImageIcon,
+  Trash2,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Question, Answer } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { UserDisplayName, FacultyVerifiedBadge, AcceptedAnswerBadge, MemberCheckmark } from './BadgeSystem';
 import { formatTimeAgo, renderFormattedContent, cn } from '../../lib/utils';
-import { getAnswersForQuestion, createAnswer, castVote, facultyVerifyAnswer, toggleAcceptAnswer } from '../../lib/api';
+import { getAnswersForQuestion, createAnswer, castVote, facultyVerifyAnswer, toggleAcceptAnswer, deleteQuestion } from '../../lib/api';
 
 interface QuestionCommentsModalProps {
   question: Question | null;
@@ -28,6 +29,7 @@ interface QuestionCommentsModalProps {
   onClose: () => void;
   onQuestionVoteUpdate?: (questionId: string, newScore: number) => void;
   onAnswerCountUpdate?: (questionId: string, newCount: number) => void;
+  onQuestionDeleted?: (questionId: string) => void;
 }
 
 export const QuestionCommentsModal: React.FC<QuestionCommentsModalProps> = ({
@@ -36,6 +38,7 @@ export const QuestionCommentsModal: React.FC<QuestionCommentsModalProps> = ({
   onClose,
   onQuestionVoteUpdate,
   onAnswerCountUpdate,
+  onQuestionDeleted,
 }) => {
   const { user, profile, isFaculty, isAdmin, isGuest } = useAuth();
   const [answers, setAnswers] = useState<Answer[]>([]);
@@ -338,14 +341,33 @@ export const QuestionCommentsModal: React.FC<QuestionCommentsModalProps> = ({
     inputRef.current?.focus();
   };
 
+
+  const handleDeleteQuestion = async () => {
+    if (!question) return;
+    const ok = window.confirm(
+      'Are you sure you want to delete this question? As a faculty member, this will remove this doubt and its explanations for violating community guidelines.'
+    );
+    if (!ok) return;
+
+    try {
+      await deleteQuestion(question.id, user?.id);
+      if (onQuestionDeleted) {
+        onQuestionDeleted(question.id);
+      }
+      onClose();
+    } catch (err) {
+      console.error('Failed to delete question:', err);
+    }
+  };
+
   const insertCode = () => {
     setCommentText((prev) => (prev ? `${prev}\n\`\`\`python\n# Code snippet\n\`\`\`\n` : '```python\n# Code snippet\n```\n'));
     inputRef.current?.focus();
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl lg:max-w-3xl max-h-[92vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+      <div className="relative w-full max-w-2xl lg:max-w-3xl h-[100dvh] sm:h-auto sm:max-h-[92vh] bg-white dark:bg-slate-900 border-0 sm:border border-slate-200 dark:border-slate-800 rounded-none sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Toast feedback notice */}
         {feedbackNotice && (
@@ -385,15 +407,27 @@ export const QuestionCommentsModal: React.FC<QuestionCommentsModalProps> = ({
             </div>
           </div>
 
-          {/* DEDICATED CROSS (X) BUTTON TO CLOSE POPUP */}
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
-            title="Close comments window"
-            aria-label="Close"
-          >
-            <X className="w-4 h-4 stroke-[2.5]" />
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {(isFaculty || isAdmin) && (
+              <button
+                type="button"
+                onClick={handleDeleteQuestion}
+                className="px-2.5 py-1 rounded-xl text-xs font-bold text-rose-500 hover:text-white bg-rose-500/10 hover:bg-rose-600 transition-colors flex items-center gap-1 border border-rose-500/20"
+                title="Faculty Access: Delete improper / abusive question"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline">Delete Doubt</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+              title="Close comments window"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4 stroke-[2.5]" />
+            </button>
+          </div>
         </div>
 
         {/* 2. Scrollable Body: Question Details + Comments/Answers Stream */}

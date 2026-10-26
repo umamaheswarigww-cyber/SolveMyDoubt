@@ -27,6 +27,32 @@ import {
 
 const LOCAL_CUSTOM_QUESTIONS_KEY = 'doubtloop_persisted_doubts';
 const LOCAL_CUSTOM_ANSWERS_KEY = 'doubtloop_persisted_answers';
+const LOCAL_DELETED_QUESTIONS_KEY = 'doubtshub_deleted_questions';
+
+export function getDeletedQuestionIds(): string[] {
+  try {
+    const raw = localStorage.getItem(LOCAL_DELETED_QUESTIONS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function markQuestionDeleted(id: string): void {
+  try {
+    const ids = getDeletedQuestionIds();
+    if (!ids.includes(id)) {
+      localStorage.setItem(LOCAL_DELETED_QUESTIONS_KEY, JSON.stringify([...ids, id]));
+    }
+    const existing = getLocalCustomQuestions();
+    const filtered = existing.filter((q) => q.id !== id);
+    localStorage.setItem(LOCAL_CUSTOM_QUESTIONS_KEY, JSON.stringify(filtered));
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('doubt_deleted', { detail: { questionId: id } }));
+    }
+  } catch {}
+}
 
 function getLocalCustomQuestions(): Question[] {
   try {
@@ -104,7 +130,8 @@ export async function checkDatabaseHealth(): Promise<{ isReady: boolean; statusT
 
 export async function getQuestions(params: FetchQuestionsParams = {}): Promise<Question[]> {
   const localDoubts = getLocalCustomQuestions();
-  let baseQuestions = [...localDoubts, ...INITIAL_QUESTIONS];
+  const deletedIds = getDeletedQuestionIds();
+  let baseQuestions = [...localDoubts, ...INITIAL_QUESTIONS].filter((q) => !deletedIds.includes(q.id));
 
   if (!isSupabaseConfigured() || !supabase) {
     return filterQuestionList(baseQuestions, params);
@@ -146,7 +173,7 @@ export async function getQuestions(params: FetchQuestionsParams = {}): Promise<Q
     }
 
     // Map database rows to rich Question models
-    const dbQuestions: Question[] = data.map((row: any) => {
+    const dbQuestions: Question[] = data.filter((row: any) => !deletedIds.includes(row.id)).map((row: any) => {
       const course =
         INITIAL_COURSES.find((c) => c.id === row.course_id) || {
           id: row.course_id,
@@ -234,6 +261,8 @@ export async function getQuestions(params: FetchQuestionsParams = {}): Promise<Q
 }
 
 export async function getQuestionById(id: string): Promise<Question | null> {
+  const deletedIds = getDeletedQuestionIds();
+  if (deletedIds.includes(id)) return null;
   const localDoubts = getLocalCustomQuestions();
   const foundLocal = localDoubts.find((q) => q.id === id);
   if (foundLocal) return foundLocal;
@@ -1021,4 +1050,37 @@ function filterQuestionList(questions: Question[], params: FetchQuestionsParams)
   }
 
   return list;
+}
+
+
+// --------------------------------------------------------------------
+// FACULTY QUESTION DELETION (MODERATION OF IMPROPER / ABUSIVE DOUBTS)
+// --------------------------------------------------------------------
+export async function deleteQuestion(
+  questionId: string,
+  facultyUserId?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // 1. Immediately mark locally and notify all listeners via window event
+    markQuestionDeleted(questionId);
+
+    // 2. If Supabase is connected, delete from Postgres tables
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        await supabase.from('answers').delete().eq('question_id', questionId);
+      } catch (e) {
+        console.warn('Answers delete notice:', e);
+      }
+
+      const { error } = await supabase.from('questions').delete().eq('id', questionId);
+      if (error) {
+        console.warn('Supabase question delete notice:', error.message);
+      }
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('Failed to delete question:', err);
+    return { success: false, error: err.message || 'Failed to delete question' };
+  }
 }

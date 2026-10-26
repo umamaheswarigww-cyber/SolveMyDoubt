@@ -55,7 +55,7 @@ export const LeaderboardPage: React.FC = () => {
   });
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="w-full space-y-6 sm:space-y-8 min-w-0">
       {/* Header */}
       <div className="rounded-3xl border border-indigo-200/80 dark:border-indigo-800/80 bg-gradient-to-r from-indigo-950/30 via-slate-900/60 to-purple-950/30 p-6 sm:p-10 shadow-sm space-y-4">
         <div className="flex items-center gap-2">

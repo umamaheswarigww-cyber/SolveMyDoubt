@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   Sparkles,
+  Bookmark,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { MemberCheckmark, GuestBadge, FacultyBadge } from './BadgeSystem';
@@ -39,7 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
   const navigate = useNavigate();
   const location = useLocation();
 
-  const navLinks = [
+  const desktopNavLinks = [
     { label: 'Explore', href: '/explore', icon: Compass },
     {
       label: 'Rescue Queue',
@@ -54,6 +55,23 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
     ...(isAdmin ? [{ label: 'Admin', href: '/admin', icon: Shield }] : []),
   ];
 
+  const allMobileNavLinks = [
+    { label: 'Dashboard', href: '/dashboard', icon: Layers },
+    { label: 'Explore Doubts', href: '/explore', icon: Compass },
+    {
+      label: 'Rescue Queue',
+      href: '/rescue',
+      icon: LifeBuoy,
+      highlight: true,
+      badgeCount: INITIAL_RESCUE_METRICS.totalUnanswered,
+    },
+    { label: 'Saved Doubts', href: '/bookmarks', icon: Bookmark },
+    { label: 'Knowledge Library', href: '/library', icon: BookOpenCheck },
+    { label: 'Leaderboard', href: '/leaderboard', icon: Trophy },
+    ...(isFaculty ? [{ label: 'Faculty Review', href: '/faculty', icon: GraduationCap }] : []),
+    ...(isAdmin ? [{ label: 'Admin', href: '/admin', icon: Shield }] : []),
+  ];
+
   const handleSignOut = async () => {
     setProfileDropdownOpen(false);
     setMobileMenuOpen(false);
@@ -62,15 +80,15 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3 min-w-0">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md transition-colors">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-3 min-w-0">
         {/* Left: Brand Logo & Wordmark */}
-        <div className="flex items-center gap-3 shrink-0">
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform shrink-0">
               <div className="w-full h-full bg-slate-950 rounded-[9px] flex items-center justify-center">
                 <svg
-                  className="w-5 h-5 text-indigo-400 group-hover:text-cyan-300 transition-colors"
+                  className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400 group-hover:text-cyan-300 transition-colors"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -84,11 +102,11 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
                 </svg>
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-indigo-700 dark:from-white dark:via-slate-100 dark:to-indigo-300 bg-clip-text text-transparent">
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              <span className="font-extrabold text-base sm:text-lg tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-indigo-700 dark:from-white dark:via-slate-100 dark:to-indigo-300 bg-clip-text text-transparent">
                 DoubtsHub
               </span>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50 hidden xs:inline-block">
+              <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-1 sm:px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50 inline-block">
                 HUB
               </span>
             </div>
@@ -111,9 +129,9 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
           </button>
         </div>
 
-        {/* Desktop Nav Links (Hidden on small tablets to preserve 1-line layout) */}
+        {/* Desktop Nav Links */}
         <nav className="hidden xl:flex items-center gap-1 shrink-0">
-          {navLinks.map((link) => {
+          {desktopNavLinks.map((link) => {
             const Icon = link.icon;
             const isActive = location.pathname === link.href;
             return (
@@ -142,12 +160,22 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
           })}
         </nav>
 
-        {/* Right: Actions, Theme, User */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Right: Actions, Theme, Role, User */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Mobile search trigger */}
+          <button
+            onClick={onOpenSearch || (() => navigate('/explore'))}
+            className="p-1.5 sm:p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900 md:hidden shrink-0"
+            aria-label="Search doubts"
+            title="Search"
+          >
+            <Search className="w-4 h-4" />
+          </button>
+
           {/* Ask a Doubt CTA */}
           <Link
             to="/ask"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 shadow-sm shadow-indigo-500/25 active:scale-95 transition-all shrink-0 whitespace-nowrap"
+            className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs font-bold text-white rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 shadow-sm shadow-indigo-500/25 active:scale-95 transition-all shrink-0 whitespace-nowrap"
           >
             <PlusCircle className="w-3.5 h-3.5 shrink-0" />
             <span className="hidden sm:inline">Ask a Doubt</span>
@@ -157,18 +185,18 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
           {/* Theme Toggle */}
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors shrink-0"
+            className="p-1.5 sm:p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors shrink-0"
             aria-label="Toggle theme"
           >
             {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          {/* Interactive Role Switcher Pill */}
+          {/* Interactive Role Switcher Pill (Desktop + Mobile) */}
           {user && (
             <button
               onClick={() => setRoleModalOpen(true)}
               className={cn(
-                'hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border transition-all active:scale-95',
+                'flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-xl text-[11px] sm:text-xs font-bold border transition-all active:scale-95 shrink-0',
                 isFaculty
                   ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
                   : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20'
@@ -177,13 +205,13 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
             >
               {isFaculty ? (
                 <>
-                  <GraduationCap className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>Faculty</span>
+                  <GraduationCap className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span className="hidden xs:inline">Faculty</span>
                 </>
               ) : (
                 <>
-                  <User className="w-3.5 h-3.5 text-indigo-500" />
-                  <span>Student</span>
+                  <User className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                  <span className="hidden xs:inline">Student</span>
                 </>
               )}
               <span className="text-[10px] text-slate-400 font-normal underline ml-0.5">Switch</span>
@@ -195,7 +223,7 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
             <div className="relative shrink-0">
               <button
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
+                className="flex items-center gap-1.5 sm:gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
                 aria-label="User account menu"
               >
                 {profile?.avatar_url && !isGuest ? (
@@ -248,7 +276,7 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
                     to="/bookmarks"
                     className="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-slate-700 dark:text-slate-200 font-medium"
                   >
-                    <Layers className="w-4 h-4 text-slate-400" />
+                    <Bookmark className="w-4 h-4 text-slate-400" />
                     <span>Saved Doubts</span>
                   </Link>
 
@@ -299,15 +327,15 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
             <div className="flex items-center gap-1.5 shrink-0">
               <Link
                 to="/auth?mode=signin"
-                className="px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors whitespace-nowrap"
+                className="px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors whitespace-nowrap"
               >
                 Sign In
               </Link>
               <Link
                 to="/auth?mode=signup"
-                className="px-3 py-1.5 text-xs font-semibold text-white bg-slate-900 dark:bg-slate-100 dark:text-slate-900 rounded-xl hover:bg-slate-800 dark:hover:bg-white transition-colors whitespace-nowrap"
+                className="px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-white bg-slate-900 dark:bg-slate-100 dark:text-slate-900 rounded-xl hover:bg-slate-800 dark:hover:bg-white transition-colors whitespace-nowrap"
               >
-                Join Free
+                Join
               </Link>
             </div>
           )}
@@ -315,7 +343,7 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
           {/* Mobile Menu Hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 xl:hidden"
+            className="p-1.5 sm:p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 xl:hidden"
             aria-label="Toggle navigation drawer"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -325,12 +353,12 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
 
       {/* Mobile Slide-down Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="xl:hidden border-t border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-950 px-4 pt-3 pb-6 space-y-3">
-          <div className="relative pb-2">
+        <div className="xl:hidden border-t border-slate-200/80 dark:border-slate-800/80 bg-white/98 dark:bg-slate-950/98 backdrop-blur-xl px-4 pt-3 pb-6 space-y-3 animate-in slide-in-from-top-2 duration-150">
+          <div className="relative pb-1">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Search doubts, courses..."
+              placeholder="Search doubts, courses, formulas..."
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   setMobileMenuOpen(false);
@@ -342,7 +370,7 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
-            {navLinks.map((link) => {
+            {allMobileNavLinks.map((link) => {
               const Icon = link.icon;
               return (
                 <Link
@@ -351,12 +379,27 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenSea
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 text-slate-700 dark:text-slate-300"
                 >
-                  <Icon className={cn('w-4 h-4', link.highlight && 'text-rose-500')} />
-                  <span>{link.label}</span>
+                  <Icon className={cn('w-4 h-4 shrink-0', link.highlight && 'text-rose-500')} />
+                  <span className="truncate">{link.label}</span>
                 </Link>
               );
             })}
           </div>
+
+          {user && (
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setRoleModalOpen(true);
+                }}
+                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Switch Role ({isFaculty ? 'Faculty → Student' : 'Student → Faculty'})</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 

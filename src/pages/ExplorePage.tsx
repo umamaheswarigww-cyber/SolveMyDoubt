@@ -66,9 +66,21 @@ export const ExplorePage: React.FC = () => {
       }
     });
 
+    const handleDeletedEvent = (e: any) => {
+      const qId = e.detail?.questionId;
+      if (qId && mounted) {
+        setQuestions((prev) => prev.filter((q) => q.id !== qId));
+        if (activeModalQuestion?.id === qId) {
+          setActiveModalQuestion(null);
+        }
+      }
+    };
+    window.addEventListener('doubt_deleted', handleDeletedEvent);
+
     return () => {
       mounted = false;
       unsubscribe();
+      window.removeEventListener('doubt_deleted', handleDeletedEvent);
     };
   }, []);
 
@@ -130,6 +142,14 @@ export const ExplorePage: React.FC = () => {
     selectedDifficulty !== 'all' ||
     selectedStatus !== 'all';
 
+
+  const removeQuestion = (id: string) => {
+    setQuestions((prev) => prev.filter((q) => q.id !== id));
+    if (activeModalQuestion?.id === id) {
+      setActiveModalQuestion(null);
+    }
+  };
+
   const resetFilters = () => {
     setSearchQuery('');
     setSelectedCourse('all');
@@ -140,7 +160,7 @@ export const ExplorePage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="w-full space-y-6 sm:space-y-8 min-w-0">
       {/* Faculty Educator Workspace Banner */}
       {isFaculty && (
         <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/5 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

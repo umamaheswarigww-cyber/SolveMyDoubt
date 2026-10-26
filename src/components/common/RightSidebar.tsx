@@ -13,8 +13,11 @@ import {
 import { INITIAL_COURSES, INITIAL_TAGS, INITIAL_LEADERBOARD, INITIAL_RESCUE_METRICS } from '../../lib/mockData';
 import { MemberCheckmark, FacultyBadge } from './BadgeSystem';
 import { cn } from '../../lib/utils';
+import { Course, Tag } from '../../types';
 
 interface RightSidebarProps {
+  courses?: Course[];
+  tags?: Tag[];
   selectedCourseId?: string;
   onSelectCourse?: (courseId: string) => void;
   selectedTagSlug?: string;

@@ -20,6 +20,7 @@ import {
   User,
   GraduationCap,
   Image as ImageIcon,
+  Trash2,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
@@ -32,6 +33,7 @@ import {
   facultyVerifyAnswer,
   escalateQuestionToFaculty,
   createAnswer,
+  deleteQuestion,
 } from '../lib/api';
 import {
   UserDisplayName,
@@ -68,6 +70,21 @@ export const QuestionDetailPage: React.FC = () => {
   const [facultyFeedbackText, setFacultyFeedbackText] = useState('');
   const [feedbackNotice, setFeedbackNotice] = useState<string | null>(null);
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
+
+
+  const handleFacultyDeleteQuestion = async () => {
+    const ok = window.confirm(
+      'Are you sure you want to delete this doubt? As a faculty member, this will remove this doubt and all its answers from the platform for being improper or abusive.'
+    );
+    if (!ok) return;
+
+    try {
+      await deleteQuestion(question.id, user?.id);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Failed to delete question:', err);
+    }
+  };
 
   // Fetch question & answers from API
   useEffect(() => {
@@ -360,7 +377,7 @@ export const QuestionDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="w-full space-y-6 sm:space-y-8 min-w-0">
       {/* Feedback Toast Notice */}
       {feedbackNotice && (
         <div className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-slate-900 text-white border border-slate-700 shadow-2xl flex items-center gap-3 text-xs font-semibold animate-bounce-subtle">
@@ -425,6 +442,16 @@ export const QuestionDetailPage: React.FC = () => {
             >
               <Share2 className="w-4 h-4" />
             </button>
+            {(isFaculty || isAdmin) && (
+              <button
+                onClick={handleFacultyDeleteQuestion}
+                className="px-3 py-1.5 rounded-xl border border-rose-500/30 text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500 hover:text-white transition-colors flex items-center gap-1.5 font-bold"
+                title="Faculty Access: Delete improper / abusive question"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete Doubt</span>
+              </button>
+            )}
           </div>
         </div>
 

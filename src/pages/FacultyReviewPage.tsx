@@ -16,10 +16,11 @@ import {
   User,
   ArrowLeft,
   LogIn,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { INITIAL_QUESTIONS, INITIAL_ANSWERS, INITIAL_COURSES } from '../lib/mockData';
-import { facultyVerifyAnswer, getQuestions } from '../lib/api';
+import { facultyVerifyAnswer, getQuestions, deleteQuestion } from '../lib/api';
 import { UserDisplayName, FacultyVerifiedBadge } from '../components/common/BadgeSystem';
 import { formatTimeAgo, formatExactDate, renderFormattedContent } from '../lib/utils';
 import { Answer, Question } from '../types';
@@ -27,7 +28,7 @@ import { Answer, Question } from '../types';
 export const FacultyReviewPage: React.FC = () => {
   const { user, profile, isFaculty, isAdmin } = useAuth();
   const [selectedCourse, setSelectedCourse] = useState('all');
-  const [reviewTab, setReviewTab] = useState<'pending' | 'verified' | 'escalated'>('pending');
+  const [reviewTab, setReviewTab] = useState<'pending' | 'verified' | 'escalated' | 'moderate'>('pending');
   const [selectedAnswer, setSelectedAnswer] = useState<Answer | null>(null);
   const [officialFeedback, setOfficialFeedback] = useState('');
   const [officialExplanation, setOfficialExplanation] = useState('');
@@ -158,7 +159,7 @@ export const FacultyReviewPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="w-full space-y-6 sm:space-y-8 min-w-0">
       {/* Toast */}
       {successToast && (
         <div className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-emerald-950 text-emerald-200 border border-emerald-700 shadow-2xl flex items-center gap-3 text-xs font-semibold animate-bounce-subtle">
@@ -234,6 +235,17 @@ export const FacultyReviewPage: React.FC = () => {
           >
             <AlertTriangle className="w-3.5 h-3.5" />
             <span>Escalated Doubts ({escalatedQuestions.length})</span>
+          </button>
+          <button
+            onClick={() => setReviewTab('moderate')}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+              reviewTab === 'moderate'
+                ? 'bg-rose-600 text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40'
+            }`}
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Moderate / Delete Improper Doubts</span>
           </button>
         </div>
       </div>
@@ -367,6 +379,61 @@ export const FacultyReviewPage: React.FC = () => {
                   Provide Faculty Explanation →
                 </Link>
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      
+      {/* Moderation Tab for Faculty */}
+      {reviewTab === 'moderate' && (
+        <div className="space-y-4">
+          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>
+              Faculty Content Moderation: Review student doubts. If a question is abusive, offensive, non-academic, or violates university guidelines, you can permanently delete it.
+            </span>
+          </div>
+
+          {questions.map((q) => (
+            <div
+              key={q.id}
+              className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 p-5 sm:p-6 space-y-3"
+            >
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
+                    {q.course?.name || 'Academic Course'}
+                  </span>
+                  <span className="text-xs text-slate-400">•</span>
+                  <span className="text-xs text-slate-500 font-medium">
+                    Posted by: {q.author?.display_name || 'Student'} ({formatTimeAgo(q.created_at)})
+                  </span>
+                </div>
+                <button
+                  onClick={async () => {
+                    const ok = window.confirm(
+                      `Are you sure you want to delete this doubt?\n\nTitle: "${q.title}"\n\nThis will permanently delete this question and its responses from the university feed.`
+                    );
+                    if (!ok) return;
+                    await deleteQuestion(q.id, user?.id);
+                    setQuestions((prev) => prev.filter((item) => item.id !== q.id));
+                    setSuccessToast('Question removed successfully for community violation.');
+                    setTimeout(() => setSuccessToast(null), 4000);
+                  }}
+                  className="px-3 py-1.5 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-500 text-white flex items-center gap-1.5 shadow-sm transition-all"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Improper Question</span>
+                </button>
+              </div>
+
+              <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100">
+                {q.title}
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
+                {q.body}
+              </p>
             </div>
           ))}
         </div>
